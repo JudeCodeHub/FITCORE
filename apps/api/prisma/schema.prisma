@@ -34,6 +34,8 @@ model User {
   dependentOf                 MembershipDependent?
   taughtClasses               Class[]
   bookings                    Booking[]
+  ptSessionsAsTrainer         PTSession[]          @relation("PTSessionTrainer")
+  ptSessionsAsMember          PTSession[]          @relation("PTSessionMember")
 }
 
 model Session {
@@ -175,4 +177,26 @@ model Booking {
 
   @@index([classId])
   @@index([userId])
+}
+
+enum PTSessionStatus {
+  BOOKED
+  CANCELLED
+}
+
+model PTSession {
+  id          String          @id @default(cuid())
+  trainerId   String
+  trainer     User            @relation("PTSessionTrainer", fields: [trainerId], references: [id])
+  memberId    String
+  member      User            @relation("PTSessionMember", fields: [memberId], references: [id], onDelete: Cascade)
+  startTime   DateTime
+  endTime     DateTime
+  status      PTSessionStatus @default(BOOKED)
+  cancelledAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([trainerId])
+  @@index([memberId])
 }

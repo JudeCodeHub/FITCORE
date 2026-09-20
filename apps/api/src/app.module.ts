@@ -8,6 +8,7 @@ import { MailerModule } from './mailer/mailer.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
 import { PlansModule } from './plans/plans.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     MembershipsModule,
     ClassesModule,
     BookingsModule,
+    PtSessionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
