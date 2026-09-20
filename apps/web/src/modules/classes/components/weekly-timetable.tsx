@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { bookingsService } from "@/modules/bookings";
+import type { IMyBooking } from "@/modules/bookings";
 import { classesService } from "@/modules/classes/services/classes.service";
 import type { IClass } from "@/modules/classes/types/class";
+import { BookClassDialog } from "./book-class-dialog";
 import { weeklyTimetableStyles as styles } from "./weekly-timetable.styles";
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const LOW_SEATS_THRESHOLD = 3;
 
 function startOfWeek(date: Date): Date {
   const d = new Date(date);
@@ -29,12 +34,23 @@ function formatShortDate(date: Date): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-/** Read-only weekly class schedule. Pass `trainerId` to show only one
- * trainer's classes (used on the trainer's own dashboard). */
-export function WeeklyTimetable({ trainerId }: { trainerId?: string }) {
+/** Weekly class schedule. Pass `trainerId` to show only one trainer's
+ * classes (the trainer's own dashboard). Pass `interactive` to let the
+ * viewer book/cancel their own seat directly from the grid (the member
+ * timetable) — omit it for a read-only view (admin overview). */
+export function WeeklyTimetable({
+  trainerId,
+  interactive = false,
+}: {
+  trainerId?: string;
+  interactive?: boolean;
+}) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [classes, setClasses] = useState<IClass[]>([]);
+  const [myBookings, setMyBookings] = useState<IMyBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dialogClass, setDialogClass] = useState<IClass | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const days = useMemo(
     () =>
@@ -46,19 +62,40 @@ export function WeeklyTimetable({ trainerId }: { trainerId?: string }) {
     [weekStart],
   );
 
-  useEffect(() => {
+  function refresh() {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 7);
     setIsLoading(true);
-    classesService
-      .list({ from: weekStart.toISOString(), to: weekEnd.toISOString() })
-      .then(setClasses)
+    return Promise.all([
+      classesService.list({
+        from: weekStart.toISOString(),
+        to: weekEnd.toISOString(),
+      }),
+      interactive ? bookingsService.listMine() : Promise.resolve([]),
+    ])
+      .then(([nextClasses, nextBookings]) => {
+        setClasses(nextClasses);
+        setMyBookings(nextBookings);
+      })
       .finally(() => setIsLoading(false));
-  }, [weekStart]);
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekStart, interactive]);
 
   const visible = trainerId
     ? classes.filter((c) => c.trainerId === trainerId)
     : classes;
+
+  const myBookingByClassId = useMemo(() => {
+    const map = new Map<string, IMyBooking>();
+    for (const b of myBookings) {
+      if (b.status !== "CANCELLED") map.set(b.classId, b);
+    }
+    return map;
+  }, [myBookings]);
 
   function classesForDay(date: Date) {
     return visible
@@ -68,6 +105,17 @@ export function WeeklyTimetable({ trainerId }: { trainerId?: string }) {
       .sort(
         (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
       );
+  }
+
+  async function handleCancel(bookingId: string) {
+    if (!confirm("Cancel this booking?")) return;
+    setBusyId(bookingId);
+    try {
+      await bookingsService.cancelMine(bookingId);
+      await refresh();
+    } finally {
+      setBusyId(null);
+    }
   }
 
   return (
@@ -124,23 +172,78 @@ export function WeeklyTimetable({ trainerId }: { trainerId?: string }) {
                 {classesForDay(date).length === 0 ? (
                   <p className={styles.emptyDay}>No classes</p>
                 ) : (
-                  classesForDay(date).map((c) => (
-                    <div key={c.id} className={styles.classCard}>
-                      <div className={styles.className}>{c.name}</div>
-                      <div className={styles.classMeta}>
-                        {formatTime(c.startTime)}–{formatTime(c.endTime)}
+                  classesForDay(date).map((c) => {
+                    const mine = myBookingByClassId.get(c.id);
+                    const isLow =
+                      c.availableSeats > 0 &&
+                      c.availableSeats <= LOW_SEATS_THRESHOLD;
+                    return (
+                      <div key={c.id} className={styles.classCard}>
+                        <div className={styles.className}>{c.name}</div>
+                        <div className={styles.classMeta}>
+                          {formatTime(c.startTime)}–{formatTime(c.endTime)}
+                        </div>
+                        <div className={styles.classMeta}>{c.trainer.name}</div>
+                        <div className={isLow ? styles.seatsLow : styles.seats}>
+                          {c.availableSeats}/{c.capacity} open
+                        </div>
+
+                        {interactive && (
+                          <div className={styles.actionRow}>
+                            {mine ? (
+                              <>
+                                {mine.status === "BOOKED" ? (
+                                  <Badge className="bg-status-active text-status-active-foreground">
+                                    Booked
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-status-pending text-status-pending-foreground">
+                                    Waitlisted #{mine.waitlistPosition}
+                                  </Badge>
+                                )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={
+                                    !mine.canCancel || busyId === mine.id
+                                  }
+                                  onClick={() => handleCancel(mine.id)}
+                                >
+                                  {busyId === mine.id ? "Cancelling…" : "Cancel"}
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="w-full"
+                                onClick={() => setDialogClass(c)}
+                              >
+                                {c.availableSeats > 0 ? "Book" : "Join waitlist"}
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className={styles.classMeta}>{c.trainer.name}</div>
-                      <div className={styles.seats}>
-                        {c.availableSeats}/{c.capacity} open
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </CardContent>
             </Card>
           ))}
         </div>
+      )}
+
+      {interactive && (
+        <BookClassDialog
+          open={dialogClass !== null}
+          onOpenChange={(open) => !open && setDialogClass(null)}
+          cls={dialogClass}
+          onConfirm={async () => {
+            if (!dialogClass) return;
+            await bookingsService.bookClass(dialogClass.id);
+            await refresh();
+          }}
+        />
       )}
     </div>
   );

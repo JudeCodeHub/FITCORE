@@ -1,5 +1,5 @@
 import { WeeklyTimetable } from "@/modules/classes/components/weekly-timetable";
 
-export function TimetablePage() {
-  return <WeeklyTimetable />;
+export function TimetablePage({ interactive = false }: { interactive?: boolean }) {
+  return <WeeklyTimetable interactive={interactive} />;
 }

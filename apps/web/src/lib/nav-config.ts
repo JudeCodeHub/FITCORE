@@ -31,6 +31,7 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
   MEMBER: [
     { label: "Dashboard", href: "/member" },
     { label: "Classes", href: "/member/classes" },
+    { label: "My Bookings", href: "/member/bookings" },
     { label: "Membership", href: "/member/membership" },
     { label: "Progress", href: "/member/progress" },
     { label: "Invoices", href: "/member/invoices" },
