@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import {
   BadRequestException,
   ForbiddenException,
@@ -6,10 +7,13 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateClassDto } from './dto/create-class.dto.js';
+import type { CreateRecurringClassDto } from './dto/create-recurring-class.dto.js';
 import type { ListClassesQueryDto } from './dto/list-classes-query.dto.js';
 import type { UpdateClassDto } from './dto/update-class.dto.js';
 
 type RequestingUser = { sub: string; role: string };
+
+const ICAL_DAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'] as const;
 
 function assertTimeRange(startTime: string, endTime: string) {
   if (new Date(endTime) <= new Date(startTime)) {
@@ -57,20 +61,7 @@ export class ClassesService {
 
   async create(dto: CreateClassDto, requester: RequestingUser) {
     assertTimeRange(dto.startTime, dto.endTime);
-
-    const trainerId =
-      requester.role === 'TRAINER' ? requester.sub : dto.trainerId;
-
-    if (!trainerId) {
-      throw new BadRequestException('trainerId is required');
-    }
-
-    const trainer = await this.prisma.user.findUnique({
-      where: { id: trainerId },
-    });
-    if (!trainer || trainer.role !== 'TRAINER') {
-      throw new BadRequestException('trainerId must reference a trainer account');
-    }
+    const trainerId = await this.resolveTrainerId(dto.trainerId, requester);
 
     return this.prisma.class.create({
       data: {
@@ -82,6 +73,64 @@ export class ClassesService {
         recurrenceRule: dto.recurrenceRule,
       },
     });
+  }
+
+  /** Generates the individual sessions for a recurring class template —
+   * e.g. "Yoga every Mon/Wed/Fri at 8am" becomes N real Class rows, all
+   * sharing one seriesId and the same iCal-style recurrenceRule string. */
+  async generateRecurring(
+    dto: CreateRecurringClassDto,
+    requester: RequestingUser,
+  ) {
+    assertTimeRange(dto.startTime, dto.endTime);
+    const trainerId = await this.resolveTrainerId(dto.trainerId, requester);
+
+    const days = Array.from(new Set(dto.daysOfWeek)).sort((a, b) => a - b);
+    const firstStart = new Date(dto.startTime);
+    const durationMs = new Date(dto.endTime).getTime() - firstStart.getTime();
+    const seriesId = randomBytes(12).toString('hex');
+    const recurrenceRule = `FREQ=WEEKLY;BYDAY=${days.map((d) => ICAL_DAY[d]).join(',')}`;
+
+    const occurrences: { startTime: Date; endTime: Date }[] = [];
+    const cursor = new Date(
+      firstStart.getFullYear(),
+      firstStart.getMonth(),
+      firstStart.getDate(),
+    );
+    while (occurrences.length < dto.occurrenceCount) {
+      if (days.includes(cursor.getDay())) {
+        const occStart = new Date(cursor);
+        occStart.setHours(
+          firstStart.getHours(),
+          firstStart.getMinutes(),
+          firstStart.getSeconds(),
+          0,
+        );
+        occurrences.push({
+          startTime: occStart,
+          endTime: new Date(occStart.getTime() + durationMs),
+        });
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    const created = await this.prisma.$transaction(
+      occurrences.map((occ) =>
+        this.prisma.class.create({
+          data: {
+            name: dto.name,
+            trainerId,
+            capacity: dto.capacity,
+            startTime: occ.startTime,
+            endTime: occ.endTime,
+            recurrenceRule,
+            seriesId,
+          },
+        }),
+      ),
+    );
+
+    return { seriesId, recurrenceRule, count: created.length, classes: created };
   }
 
   async update(id: string, dto: UpdateClassDto, requester: RequestingUser) {
@@ -121,6 +170,27 @@ export class ClassesService {
     this.assertOwnership(cls.trainerId, requester);
 
     await this.prisma.class.delete({ where: { id } });
+  }
+
+  private async resolveTrainerId(
+    dtoTrainerId: string | undefined,
+    requester: RequestingUser,
+  ): Promise<string> {
+    const trainerId =
+      requester.role === 'TRAINER' ? requester.sub : dtoTrainerId;
+
+    if (!trainerId) {
+      throw new BadRequestException('trainerId is required');
+    }
+
+    const trainer = await this.prisma.user.findUnique({
+      where: { id: trainerId },
+    });
+    if (!trainer || trainer.role !== 'TRAINER') {
+      throw new BadRequestException('trainerId must reference a trainer account');
+    }
+
+    return trainerId;
   }
 
   private assertOwnership(trainerId: string, requester: RequestingUser) {

@@ -17,6 +17,7 @@ import { JwtAuthGuard, type RequestUser } from '../auth/guards/jwt-auth.guard.js
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { ClassesService } from './classes.service.js';
 import { CreateClassDto } from './dto/create-class.dto.js';
+import { CreateRecurringClassDto } from './dto/create-recurring-class.dto.js';
 import { ListClassesQueryDto } from './dto/list-classes-query.dto.js';
 import { UpdateClassDto } from './dto/update-class.dto.js';
 
@@ -41,6 +42,15 @@ export class ClassesController {
   @Roles('ADMIN', 'TRAINER')
   create(@Body() dto: CreateClassDto, @CurrentUser() user: RequestUser) {
     return this.classesService.create(dto, user);
+  }
+
+  @Post('recurring')
+  @Roles('ADMIN', 'TRAINER')
+  generateRecurring(
+    @Body() dto: CreateRecurringClassDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.classesService.generateRecurring(dto, user);
   }
 
   @Patch(':id')

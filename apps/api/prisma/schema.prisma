@@ -146,11 +146,15 @@ model Class {
   /// iCal-style rule (e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR") for the recurring
   /// class template generator; null means a one-off session.
   recurrenceRule String?
+  /// Shared by every occurrence generated from the same recurring template;
+  /// null for a one-off class created individually.
+  seriesId       String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   bookings       Booking[]
 
   @@index([trainerId])
+  @@index([seriesId])
 }
 
 enum BookingStatus {
