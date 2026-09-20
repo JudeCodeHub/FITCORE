@@ -9,6 +9,7 @@ import { MembershipsModule } from './memberships/memberships.module.js';
 import { PlansModule } from './plans/plans.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
+import { TrainerAvailabilityModule } from './trainer-availability/trainer-availability.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
     ClassesModule,
     BookingsModule,
     PtSessionsModule,
+    TrainerAvailabilityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

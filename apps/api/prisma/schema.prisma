@@ -36,6 +36,7 @@ model User {
   bookings                    Booking[]
   ptSessionsAsTrainer         PTSession[]          @relation("PTSessionTrainer")
   ptSessionsAsMember          PTSession[]          @relation("PTSessionMember")
+  availability                TrainerAvailability[]
 }
 
 model Session {
@@ -199,4 +200,15 @@ model PTSession {
 
   @@index([trainerId])
   @@index([memberId])
+}
+
+model TrainerAvailability {
+  id          String @id @default(cuid())
+  trainerId   String
+  trainer     User   @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int
+  startMinute Int
+  endMinute   Int
+
+  @@index([trainerId])
 }

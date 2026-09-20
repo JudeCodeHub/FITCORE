@@ -6,13 +6,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { TrainerAvailabilityService } from '../trainer-availability/trainer-availability.service.js';
 import type { CreatePtSessionDto } from './dto/create-pt-session.dto.js';
 
 type RequestingUser = { sub: string; role: string };
 
 @Injectable()
 export class PtSessionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly availability: TrainerAvailabilityService,
+  ) {}
 
   async create(dto: CreatePtSessionDto) {
     const start = new Date(dto.startTime);
@@ -32,6 +36,8 @@ export class PtSessionsService {
       where: { id: dto.memberId },
     });
     if (!member) throw new NotFoundException('Member not found');
+
+    await this.availability.assertWithinAvailability(dto.trainerId, start, end);
 
     const trainerConflict = await this.prisma.pTSession.findFirst({
       where: {

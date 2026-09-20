@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { TrainerAvailabilityService } from '../trainer-availability/trainer-availability.service.js';
 import type { CreateClassDto } from './dto/create-class.dto.js';
 import type { CreateRecurringClassDto } from './dto/create-recurring-class.dto.js';
 import type { ListClassesQueryDto } from './dto/list-classes-query.dto.js';
@@ -23,7 +24,10 @@ function assertTimeRange(startTime: string, endTime: string) {
 
 @Injectable()
 export class ClassesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly availability: TrainerAvailabilityService,
+  ) {}
 
   async findAll(query: ListClassesQueryDto) {
     const classes = await this.prisma.class.findMany({
@@ -62,6 +66,11 @@ export class ClassesService {
   async create(dto: CreateClassDto, requester: RequestingUser) {
     assertTimeRange(dto.startTime, dto.endTime);
     const trainerId = await this.resolveTrainerId(dto.trainerId, requester);
+    await this.availability.assertWithinAvailability(
+      trainerId,
+      new Date(dto.startTime),
+      new Date(dto.endTime),
+    );
 
     return this.prisma.class.create({
       data: {
@@ -114,6 +123,14 @@ export class ClassesService {
       cursor.setDate(cursor.getDate() + 1);
     }
 
+    for (const occ of occurrences) {
+      await this.availability.assertWithinAvailability(
+        trainerId,
+        occ.startTime,
+        occ.endTime,
+      );
+    }
+
     const created = await this.prisma.$transaction(
       occurrences.map((occ) =>
         this.prisma.class.create({
@@ -148,6 +165,14 @@ export class ClassesService {
 
     if (dto.trainerId && requester.role !== 'ADMIN') {
       throw new ForbiddenException('Only an admin can reassign a class to a different trainer');
+    }
+
+    if (dto.startTime || dto.endTime || dto.trainerId) {
+      await this.availability.assertWithinAvailability(
+        dto.trainerId ?? cls.trainerId,
+        dto.startTime ? new Date(dto.startTime) : cls.startTime,
+        dto.endTime ? new Date(dto.endTime) : cls.endTime,
+      );
     }
 
     return this.prisma.class.update({
