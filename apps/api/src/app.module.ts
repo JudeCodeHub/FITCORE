@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
+import { BookingsModule } from './bookings/bookings.module.js';
 import { ClassesModule } from './classes/classes.module.js';
 import { MailerModule } from './mailer/mailer.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
@@ -16,6 +17,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     PlansModule,
     MembershipsModule,
     ClassesModule,
+    BookingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
