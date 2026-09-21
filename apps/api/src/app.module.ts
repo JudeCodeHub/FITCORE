@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
+import { BodyMetricsModule } from './body-metrics/body-metrics.module.js';
 import { BookingsModule } from './bookings/bookings.module.js';
 import { CheckInsModule } from './check-ins/check-ins.module.js';
 import { ClassesModule } from './classes/classes.module.js';
@@ -30,6 +31,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     TrainerProfilesModule,
     ExercisesModule,
     WorkoutPlansModule,
+    BodyMetricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
