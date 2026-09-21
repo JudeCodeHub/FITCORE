@@ -4,6 +4,7 @@ export const progressStyles = {
   stat: "pt-6 text-center",
   statValue: "font-heading text-2xl font-semibold tracking-tight",
   statLabel: "mt-1 text-sm text-muted-foreground",
+  chartsGrid: "mb-8 grid gap-4 md:grid-cols-3",
   sectionTitle: "mb-3 font-heading text-lg font-semibold",
   logCard: "mb-8",
   contactCell: "text-sm text-muted-foreground",

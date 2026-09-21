@@ -14,6 +14,7 @@ import {
 import { bodyMetricsService } from "@/modules/body-metrics/services/body-metrics.service";
 import type { IBodyMetric } from "@/modules/body-metrics/types/body-metric";
 import { LogMetricForm } from "./components/log-metric-form";
+import { MetricChart } from "./components/metric-chart";
 import { progressStyles as styles } from "./progress.styles";
 
 function formatDate(iso: string): string {
@@ -45,6 +46,21 @@ export function ProgressPage() {
   const latest = metrics[0] ?? null;
   const lastKnownHeightCm =
     metrics.find((m) => m.heightCm !== null)?.heightCm ?? null;
+
+  const chronological = metrics.slice().reverse();
+  const weightData = chronological.map((m) => ({
+    date: formatDate(m.recordedAt),
+    value: m.weightKg,
+  }));
+  const bmiData = chronological
+    .filter((m) => m.bmi !== null)
+    .map((m) => ({ date: formatDate(m.recordedAt), value: m.bmi as number }));
+  const bodyFatData = chronological
+    .filter((m) => m.bodyFatPct !== null)
+    .map((m) => ({
+      date: formatDate(m.recordedAt),
+      value: m.bodyFatPct as number,
+    }));
 
   return (
     <div>
@@ -78,6 +94,14 @@ export function ProgressPage() {
               <div className={styles.statLabel}>Latest body fat</div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {!isLoading && metrics.length > 0 && (
+        <div className={styles.chartsGrid}>
+          <MetricChart title="Weight" unit="kg" data={weightData} />
+          <MetricChart title="BMI" unit="" data={bmiData} />
+          <MetricChart title="Body Fat %" unit="%" data={bodyFatData} />
         </div>
       )}
 
