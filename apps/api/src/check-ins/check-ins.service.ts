@@ -42,6 +42,14 @@ export class CheckInsService {
     });
   }
 
+  findMine(userId: string, limit = 100) {
+    return this.prisma.checkIn.findMany({
+      where: { userId },
+      take: limit,
+      orderBy: { timestamp: 'desc' },
+    });
+  }
+
   async findActive() {
     const since = new Date(Date.now() - ACTIVE_WINDOW_MINUTES * 60 * 1000);
     const checkIns = await this.prisma.checkIn.findMany({

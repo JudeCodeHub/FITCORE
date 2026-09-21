@@ -22,8 +22,16 @@ Phase 5 home. So far:
   the gateway verifies the JWT + role (`ADMIN`/`FRONT_DESK`) on
   connect and disconnects anyone else.
 
-Per-member check-in history is a later checklist item that will land
-here too.
+- `CheckInHistoryPage` — a member's own check-in log, rendered at
+  `/member/check-ins`. Backed by `GET /check-ins/me` (any authenticated
+  user gets their own history; no role restriction), grouped by day
+  ("Today" / "Yesterday" / weekday) with a per-day visit count.
+
+`CheckInsController` has no class-level `@Roles()` — each route
+declares its own (`create`, `findRecent`, `findActive` are
+`ADMIN`/`FRONT_DESK`; `findMine` has none, so any authenticated role
+can hit their own `/me`), matching the pattern in
+`MembershipsController`.
 
 **Data deps:** `qrCodeId` comes from the auth context (`useAuth()`),
 already included in `/auth/me`, `/auth/login`, and `/auth/signup`

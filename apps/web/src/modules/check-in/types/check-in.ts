@@ -9,6 +9,12 @@ export interface ICheckIn {
   };
 }
 
+export interface ICheckInRecord {
+  id: string;
+  userId: string;
+  timestamp: string;
+}
+
 export interface ICheckInResult {
   checkIn: {
     id: string;

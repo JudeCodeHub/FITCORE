@@ -1,5 +1,9 @@
 import { apiFetch } from "@/shared/api-client/http";
-import type { ICheckIn, ICheckInResult } from "@/modules/check-in/types/check-in";
+import type {
+  ICheckIn,
+  ICheckInRecord,
+  ICheckInResult,
+} from "@/modules/check-in/types/check-in";
 
 export const checkInService = {
   checkIn(qrCodeId: string) {
@@ -15,5 +19,9 @@ export const checkInService = {
 
   listActive() {
     return apiFetch<ICheckIn[]>("/check-ins/active");
+  },
+
+  listMine() {
+    return apiFetch<ICheckInRecord[]>("/check-ins/me");
   },
 };
