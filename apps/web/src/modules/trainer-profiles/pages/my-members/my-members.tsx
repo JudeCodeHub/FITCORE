@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -44,6 +46,7 @@ export function MyMembersPage() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
+              <TableHead className="text-right">Workout Plans</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -55,6 +58,14 @@ export function MyMembersPage() {
                 </TableCell>
                 <TableCell className={styles.contactCell}>
                   {member.phone ?? "—"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Link
+                    href={`/trainer/members/${member.id}/plans`}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
+                    View plans
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}

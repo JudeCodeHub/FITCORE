@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { BookingsModule } from './bookings/bookings.module.js';
 import { CheckInsModule } from './check-ins/check-ins.module.js';
 import { ClassesModule } from './classes/classes.module.js';
+import { ExercisesModule } from './exercises/exercises.module.js';
 import { MailerModule } from './mailer/mailer.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
 import { PlansModule } from './plans/plans.module.js';
@@ -12,6 +13,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
 import { TrainerAvailabilityModule } from './trainer-availability/trainer-availability.module.js';
 import { TrainerProfilesModule } from './trainer-profiles/trainer-profiles.module.js';
+import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { TrainerProfilesModule } from './trainer-profiles/trainer-profiles.modul
     TrainerAvailabilityModule,
     CheckInsModule,
     TrainerProfilesModule,
+    ExercisesModule,
+    WorkoutPlansModule,
   ],
   controllers: [AppController],
   providers: [AppService],
