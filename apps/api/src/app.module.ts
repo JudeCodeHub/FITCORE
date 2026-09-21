@@ -3,6 +3,7 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BookingsModule } from './bookings/bookings.module.js';
+import { CheckInsModule } from './check-ins/check-ins.module.js';
 import { ClassesModule } from './classes/classes.module.js';
 import { MailerModule } from './mailer/mailer.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
@@ -22,6 +23,7 @@ import { TrainerAvailabilityModule } from './trainer-availability/trainer-availa
     BookingsModule,
     PtSessionsModule,
     TrainerAvailabilityModule,
+    CheckInsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
