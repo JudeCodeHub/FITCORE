@@ -42,6 +42,10 @@ model User {
   assignedTrainerId           String?
   assignedTrainer             User?    @relation("TrainerAssignments", fields: [assignedTrainerId], references: [id], onDelete: SetNull)
   assignedMembers             User[]   @relation("TrainerAssignments")
+  workoutPlansAsMember        WorkoutPlan[]   @relation("WorkoutPlanMember")
+  workoutPlansCreated         WorkoutPlan[]   @relation("WorkoutPlanCreator")
+  bodyMetrics                 BodyMetric[]
+  progressPhotos              ProgressPhoto[]
 }
 
 model Session {
@@ -238,4 +242,85 @@ model TrainerProfile {
   photoUrl       String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model Exercise {
+  id          String   @id @default(cuid())
+  name        String
+  muscleGroup String
+  defaultSets Int
+  defaultReps Int
+  demoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  planExercises WorkoutPlanExercise[]
+}
+
+/// A workout plan belongs to the member doing it (memberId) and records
+/// who built it (createdById) — the same person for a self-created plan,
+/// their trainer for a trainer-assigned one.
+model WorkoutPlan {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      User     @relation("WorkoutPlanMember", fields: [memberId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User     @relation("WorkoutPlanCreator", fields: [createdById], references: [id])
+  name        String
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  exercises WorkoutPlanExercise[]
+
+  @@index([memberId])
+}
+
+/// Join table between WorkoutPlan and Exercise — carries the
+/// plan-specific prescription (sets/reps/order) rather than just a bare
+/// many-to-many, since the same Exercise is prescribed differently
+/// across different plans.
+model WorkoutPlanExercise {
+  id         String      @id @default(cuid())
+  planId     String
+  plan       WorkoutPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise    @relation(fields: [exerciseId], references: [id])
+  sets       Int
+  reps       Int
+  order      Int
+
+  @@index([planId])
+}
+
+/// BMI is intentionally not stored here — it's derived from weightKg and
+/// heightCm at read time, so it can't drift out of sync with either.
+model BodyMetric {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recordedAt   DateTime @default(now())
+  weightKg     Float
+  heightCm     Float?
+  bodyFatPct   Float?
+  measurements Json?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([recordedAt])
+}
+
+/// Visibility (member + their assigned trainer only) is enforced at the
+/// API layer via User.assignedTrainerId, not encoded in this table.
+model ProgressPhoto {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photoUrl  String
+  takenAt   DateTime @default(now())
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([takenAt])
 }
