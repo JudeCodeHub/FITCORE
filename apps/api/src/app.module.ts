@@ -12,6 +12,7 @@ import { MembershipsModule } from './memberships/memberships.module.js';
 import { PersonalRecordsModule } from './personal-records/personal-records.module.js';
 import { PlansModule } from './plans/plans.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { ProgressPhotosModule } from './progress-photos/progress-photos.module.js';
 import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
 import { TrainerAvailabilityModule } from './trainer-availability/trainer-availability.module.js';
 import { TrainerProfilesModule } from './trainer-profiles/trainer-profiles.module.js';
@@ -34,6 +35,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     WorkoutPlansModule,
     BodyMetricsModule,
     PersonalRecordsModule,
+    ProgressPhotosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

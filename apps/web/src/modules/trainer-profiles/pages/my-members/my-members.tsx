@@ -46,7 +46,7 @@ export function MyMembersPage() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead className="text-right">Workout Plans</TableHead>
+              <TableHead className="text-right">Links</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -59,12 +59,18 @@ export function MyMembersPage() {
                 <TableCell className={styles.contactCell}>
                   {member.phone ?? "—"}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className={styles.linksCell}>
                   <Link
                     href={`/trainer/members/${member.id}/plans`}
                     className={buttonVariants({ variant: "outline", size: "sm" })}
                   >
                     View plans
+                  </Link>
+                  <Link
+                    href={`/trainer/members/${member.id}/photos`}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
+                    View photos
                   </Link>
                 </TableCell>
               </TableRow>

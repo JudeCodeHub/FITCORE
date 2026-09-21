@@ -14,6 +14,7 @@ import {
 import { bodyMetricsService } from "@/modules/body-metrics/services/body-metrics.service";
 import type { IBodyMetric } from "@/modules/body-metrics/types/body-metric";
 import { PersonalRecordsSection } from "@/modules/personal-records";
+import { ProgressPhotosSection } from "@/modules/progress-photos";
 import { LogMetricForm } from "./components/log-metric-form";
 import { MetricChart } from "./components/metric-chart";
 import { progressStyles as styles } from "./progress.styles";
@@ -175,6 +176,10 @@ export function ProgressPage() {
 
       <div className={styles.divider}>
         <PersonalRecordsSection />
+      </div>
+
+      <div className={styles.divider}>
+        <ProgressPhotosSection />
       </div>
     </div>
   );
