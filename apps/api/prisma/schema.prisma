@@ -38,6 +38,7 @@ model User {
   ptSessionsAsMember          PTSession[]          @relation("PTSessionMember")
   availability                TrainerAvailability[]
   checkIns                    CheckIn[]
+  trainerProfile              TrainerProfile?
 }
 
 model Session {
@@ -222,4 +223,16 @@ model CheckIn {
 
   @@index([userId])
   @@index([timestamp])
+}
+
+model TrainerProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio            String?
+  specialties    String[]
+  certifications String[]
+  photoUrl       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

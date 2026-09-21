@@ -11,6 +11,7 @@ import { PlansModule } from './plans/plans.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
 import { TrainerAvailabilityModule } from './trainer-availability/trainer-availability.module.js';
+import { TrainerProfilesModule } from './trainer-profiles/trainer-profiles.module.js';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TrainerAvailabilityModule } from './trainer-availability/trainer-availa
     PtSessionsModule,
     TrainerAvailabilityModule,
     CheckInsModule,
+    TrainerProfilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

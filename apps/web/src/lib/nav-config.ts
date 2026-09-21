@@ -22,6 +22,7 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { label: "My Members", href: "/trainer/members" },
     { label: "Availability", href: "/trainer/availability" },
     { label: "PT Sessions", href: "/trainer/sessions" },
+    { label: "My Profile", href: "/trainer/profile" },
   ],
   FRONT_DESK: [
     { label: "Check-In", href: "/front-desk" },
