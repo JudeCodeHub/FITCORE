@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
@@ -36,6 +37,12 @@ export class CheckInsController {
   @Roles('ADMIN', 'FRONT_DESK')
   findActive() {
     return this.checkInsService.findActive();
+  }
+
+  @Get('peak-hours')
+  @Roles('ADMIN')
+  getPeakHours(@Query('days') days?: string) {
+    return this.checkInsService.getPeakHours(days ? Number(days) : undefined);
   }
 
   // Must be registered before any dynamic ':id'-style route were one ever
