@@ -26,3 +26,17 @@ export interface ITrainerPublicProfile {
   user: { id: string; name: string };
   profile: ITrainerProfile | null;
 }
+
+export interface IAssignedMember {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+}
+
+export interface IMemberWithTrainer {
+  id: string;
+  name: string;
+  email: string;
+  assignedTrainer: { id: string; name: string } | null;
+}

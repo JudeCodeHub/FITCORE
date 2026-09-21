@@ -1,5 +1,7 @@
 import { apiFetch } from "@/shared/api-client/http";
 import type {
+  IAssignedMember,
+  IMemberWithTrainer,
   ITrainerProfile,
   ITrainerProfileInput,
   ITrainerPublicProfile,
@@ -24,5 +26,27 @@ export const trainerProfilesService = {
 
   getByTrainerId(trainerId: string) {
     return apiFetch<ITrainerPublicProfile>(`/trainer-profiles/${trainerId}`);
+  },
+
+  listMyMembers() {
+    return apiFetch<IAssignedMember[]>("/trainer-profiles/me/members");
+  },
+
+  listAllMembers() {
+    return apiFetch<IMemberWithTrainer[]>("/trainer-profiles/members");
+  },
+
+  assignMember(trainerId: string, memberId: string) {
+    return apiFetch<IMemberWithTrainer>(
+      `/trainer-profiles/${trainerId}/members/${memberId}`,
+      { method: "PUT" },
+    );
+  },
+
+  unassignMember(trainerId: string, memberId: string) {
+    return apiFetch<void>(
+      `/trainer-profiles/${trainerId}/members/${memberId}`,
+      { method: "DELETE" },
+    );
   },
 };

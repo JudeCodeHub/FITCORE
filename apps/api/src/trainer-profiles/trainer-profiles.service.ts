@@ -52,4 +52,66 @@ export class TrainerProfilesService {
 
     return { user: { id: user.id, name: user.name }, profile };
   }
+
+  listMyMembers(trainerId: string) {
+    return this.prisma.user.findMany({
+      where: { assignedTrainerId: trainerId },
+      select: { id: true, name: true, email: true, phone: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  listAllMembers() {
+    return this.prisma.user.findMany({
+      where: { role: 'MEMBER' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        assignedTrainer: { select: { id: true, name: true } },
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async assignMember(trainerId: string, memberId: string) {
+    const trainer = await this.prisma.user.findUnique({
+      where: { id: trainerId },
+    });
+    if (!trainer || trainer.role !== 'TRAINER') {
+      throw new NotFoundException('Trainer not found');
+    }
+
+    const member = await this.prisma.user.findUnique({
+      where: { id: memberId },
+    });
+    if (!member || member.role !== 'MEMBER') {
+      throw new NotFoundException('Member not found');
+    }
+
+    return this.prisma.user.update({
+      where: { id: memberId },
+      data: { assignedTrainerId: trainerId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        assignedTrainer: { select: { id: true, name: true } },
+      },
+    });
+  }
+
+  async unassignMember(trainerId: string, memberId: string) {
+    const member = await this.prisma.user.findUnique({
+      where: { id: memberId },
+    });
+    if (!member || member.assignedTrainerId !== trainerId) {
+      throw new NotFoundException('Assignment not found');
+    }
+
+    await this.prisma.user.update({
+      where: { id: memberId },
+      data: { assignedTrainerId: null },
+    });
+  }
 }
