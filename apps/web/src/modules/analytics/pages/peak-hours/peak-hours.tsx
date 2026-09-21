@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
 import type { IPeakHours } from "@/modules/analytics/types/analytics";
 import { peakHoursStyles as styles } from "./peak-hours.styles";
@@ -38,6 +39,7 @@ export function PeakHoursPage() {
 
   return (
     <div>
+      <AnalyticsNav />
       <h1 className={styles.title}>Peak Hours</h1>
 
       <div className={styles.controls}>

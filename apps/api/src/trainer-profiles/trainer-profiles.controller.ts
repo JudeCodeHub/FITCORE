@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
@@ -40,6 +41,18 @@ export class TrainerProfilesController {
     return this.profilesService.listMyMembers(user.sub);
   }
 
+  @Get('me/utilization')
+  @Roles('TRAINER')
+  getMyUtilization(
+    @CurrentUser() user: RequestUser,
+    @Query('days') days?: string,
+  ) {
+    return this.profilesService.getUtilization(
+      user.sub,
+      days ? Number(days) : undefined,
+    );
+  }
+
   @Get()
   findAll() {
     return this.profilesService.findAll();
@@ -58,6 +71,18 @@ export class TrainerProfilesController {
   @Get(':trainerId')
   findByTrainer(@Param('trainerId') trainerId: string) {
     return this.profilesService.findByTrainer(trainerId);
+  }
+
+  @Get(':trainerId/utilization')
+  @Roles('ADMIN')
+  getUtilization(
+    @Param('trainerId') trainerId: string,
+    @Query('days') days?: string,
+  ) {
+    return this.profilesService.getUtilization(
+      trainerId,
+      days ? Number(days) : undefined,
+    );
   }
 
   @Put(':trainerId/members/:memberId')
