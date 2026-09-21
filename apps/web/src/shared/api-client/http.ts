@@ -6,7 +6,7 @@ import {
 } from "@/shared/auth/token-store";
 import type { IAuthTokens } from "@/shared/auth/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export class ApiError extends Error {
   constructor(

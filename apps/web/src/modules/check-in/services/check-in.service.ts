@@ -12,4 +12,8 @@ export const checkInService = {
   listRecent() {
     return apiFetch<ICheckIn[]>("/check-ins/recent");
   },
+
+  listActive() {
+    return apiFetch<ICheckIn[]>("/check-ins/active");
+  },
 };

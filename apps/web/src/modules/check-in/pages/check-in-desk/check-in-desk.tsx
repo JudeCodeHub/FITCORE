@@ -6,12 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ApiError } from "@/shared/api-client/http";
 import { checkInService } from "@/modules/check-in/services/check-in.service";
-import type { ICheckIn } from "@/modules/check-in/types/check-in";
+import { useCheckInSocket } from "@/modules/check-in/hooks/use-check-in-socket";
+import type { ICheckIn, ICheckInResult } from "@/modules/check-in/types/check-in";
 import { checkInDeskStyles as styles } from "./check-in-desk.styles";
 
 type Feedback =
   | { kind: "success"; name: string; role: string }
   | { kind: "error"; message: string };
+
+const ACTIVE_REFRESH_MS = 60_000;
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, {
@@ -20,21 +23,44 @@ function formatTime(iso: string): string {
   });
 }
 
+function toEntry(event: ICheckInResult): ICheckIn {
+  return {
+    id: event.checkIn.id,
+    userId: event.checkIn.userId,
+    timestamp: event.checkIn.timestamp,
+    user: event.user,
+  };
+}
+
 export function CheckInDeskPage() {
   const [code, setCode] = useState("");
+  const [active, setActive] = useState<ICheckIn[]>([]);
   const [recent, setRecent] = useState<ICheckIn[]>([]);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function loadRecent() {
-    checkInService.listRecent().then(setRecent);
+  function refreshActive() {
+    checkInService.listActive().then(setActive);
   }
 
   useEffect(() => {
-    loadRecent();
+    refreshActive();
+    checkInService.listRecent().then(setRecent);
     inputRef.current?.focus();
+
+    const interval = setInterval(refreshActive, ACTIVE_REFRESH_MS);
+    return () => clearInterval(interval);
   }, []);
+
+  const { isConnected } = useCheckInSocket((event) => {
+    const entry = toEntry(event);
+    setRecent((prev) => [entry, ...prev].slice(0, 20));
+    setActive((prev) => [
+      entry,
+      ...prev.filter((c) => c.userId !== entry.userId),
+    ]);
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,7 +75,6 @@ export function CheckInDeskPage() {
         name: result.user.name,
         role: result.user.role,
       });
-      loadRecent();
     } catch (err) {
       setFeedback({
         kind: "error",
@@ -104,26 +129,59 @@ export function CheckInDeskPage() {
         </Card>
 
         <div>
-          <h2 className={styles.sectionTitle}>Recent Check-Ins</h2>
-          <Card>
-            <CardContent className="pt-6">
-              {recent.length === 0 ? (
-                <p className={styles.empty}>No check-ins yet today.</p>
-              ) : (
-                recent.map((c) => (
-                  <div key={c.id} className={styles.row}>
-                    <div className={styles.rowMain}>
-                      <div className={styles.rowTitle}>{c.user.name}</div>
-                      <div className={styles.rowMeta}>{c.user.role}</div>
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Currently In The Gym</h2>
+              <div className={styles.liveStatus}>
+                <span
+                  className={isConnected ? styles.liveDot : styles.liveDotOff}
+                />
+                {isConnected ? "Live" : "Reconnecting…"}
+              </div>
+            </div>
+            <Card>
+              <CardContent className="pt-6">
+                {active.length === 0 ? (
+                  <p className={styles.empty}>No one checked in right now.</p>
+                ) : (
+                  active.map((c) => (
+                    <div key={c.userId} className={styles.row}>
+                      <div className={styles.rowMain}>
+                        <div className={styles.rowTitle}>{c.user.name}</div>
+                        <div className={styles.rowMeta}>{c.user.role}</div>
+                      </div>
+                      <div className={styles.rowMeta}>
+                        {formatTime(c.timestamp)}
+                      </div>
                     </div>
-                    <div className={styles.rowMeta}>
-                      {formatTime(c.timestamp)}
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div>
+            <h2 className={styles.sectionTitle}>Recent Check-Ins</h2>
+            <Card>
+              <CardContent className="pt-6">
+                {recent.length === 0 ? (
+                  <p className={styles.empty}>No check-ins yet today.</p>
+                ) : (
+                  recent.map((c) => (
+                    <div key={c.id} className={styles.row}>
+                      <div className={styles.rowMain}>
+                        <div className={styles.rowTitle}>{c.user.name}</div>
+                        <div className={styles.rowMeta}>{c.user.role}</div>
+                      </div>
+                      <div className={styles.rowMeta}>
+                        {formatTime(c.timestamp)}
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

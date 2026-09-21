@@ -29,4 +29,9 @@ export class CheckInsController {
   findRecent() {
     return this.checkInsService.findRecent();
   }
+
+  @Get('active')
+  findActive() {
+    return this.checkInsService.findActive();
+  }
 }

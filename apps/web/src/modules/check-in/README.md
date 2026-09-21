@@ -8,11 +8,22 @@ Phase 5 home. So far:
 - `CheckInDeskPage` — the front-desk check-in screen, rendered at
   `/front-desk`. One auto-focused text input handles both a USB QR
   scanner (which types the code + Enter) and manual entry, backed by
-  `POST /check-ins` (looks up by `qrCodeId`, 404s if unknown) and
-  `GET /check-ins/recent`.
+  `POST /check-ins` (looks up by `qrCodeId`, 404s if unknown).
+- Live "Currently In The Gym" panel on the same page, backed by
+  `GET /check-ins/active` (server dedupes to each member's latest
+  check-in within a rolling 2-hour window) plus a Socket.IO connection
+  to the API's `/check-ins` namespace (`useCheckInSocket`) — every
+  check-in anywhere (this terminal or another) pushes a `check-in:new`
+  event that updates both the live roster and the "Recent Check-Ins"
+  log instantly, no polling needed for new events. A 60s background
+  refresh of `/check-ins/active` is kept as a safety net, since a
+  member "leaving" the active window is a passage of time, not an
+  event the server pushes. The socket connection is staff-only —
+  the gateway verifies the JWT + role (`ADMIN`/`FRONT_DESK`) on
+  connect and disconnects anyone else.
 
-The live "who's in the gym" dashboard and per-member check-in history
-are later checklist items that will land here too.
+Per-member check-in history is a later checklist item that will land
+here too.
 
 **Data deps:** `qrCodeId` comes from the auth context (`useAuth()`),
 already included in `/auth/me`, `/auth/login`, and `/auth/signup`
