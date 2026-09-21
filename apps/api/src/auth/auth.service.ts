@@ -23,7 +23,13 @@ const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 const INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-type AuthUser = { id: string; name: string; email: string; role: string };
+type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  qrCodeId: string;
+};
 
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -237,6 +243,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      qrCodeId: user.qrCodeId,
     };
   }
 
@@ -386,6 +393,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        qrCodeId: user.qrCodeId,
       },
       accessToken,
       refreshToken,
