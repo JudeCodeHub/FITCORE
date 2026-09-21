@@ -8,4 +8,5 @@ export const progressStyles = {
   sectionTitle: "mb-3 font-heading text-lg font-semibold",
   logCard: "mb-8",
   contactCell: "text-sm text-muted-foreground",
+  divider: "mt-10 border-t pt-8",
 } as const;

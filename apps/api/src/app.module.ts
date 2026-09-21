@@ -9,6 +9,7 @@ import { ClassesModule } from './classes/classes.module.js';
 import { ExercisesModule } from './exercises/exercises.module.js';
 import { MailerModule } from './mailer/mailer.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
+import { PersonalRecordsModule } from './personal-records/personal-records.module.js';
 import { PlansModule } from './plans/plans.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
@@ -32,6 +33,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     ExercisesModule,
     WorkoutPlansModule,
     BodyMetricsModule,
+    PersonalRecordsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

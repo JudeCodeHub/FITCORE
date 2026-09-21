@@ -46,6 +46,7 @@ model User {
   workoutPlansCreated         WorkoutPlan[]   @relation("WorkoutPlanCreator")
   bodyMetrics                 BodyMetric[]
   progressPhotos              ProgressPhoto[]
+  personalRecords             PersonalRecord[]
 }
 
 model Session {
@@ -255,6 +256,7 @@ model Exercise {
   updatedAt   DateTime @updatedAt
 
   planExercises WorkoutPlanExercise[]
+  personalRecords PersonalRecord[]
 }
 
 /// A workout plan belongs to the member doing it (memberId) and records
@@ -323,4 +325,23 @@ model ProgressPhoto {
 
   @@index([userId])
   @@index([takenAt])
+}
+
+/// One row per logged lift attempt, not per "current best" — the current
+/// PR for an exercise is derived (highest estimated 1RM among a user's
+/// entries for it), not stored, so the log can also show progression
+/// over time rather than only the single best lift.
+model PersonalRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  weightKg   Float
+  reps       Int
+  achievedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([exerciseId])
 }

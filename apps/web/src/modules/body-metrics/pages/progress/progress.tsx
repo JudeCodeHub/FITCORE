@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { bodyMetricsService } from "@/modules/body-metrics/services/body-metrics.service";
 import type { IBodyMetric } from "@/modules/body-metrics/types/body-metric";
+import { PersonalRecordsSection } from "@/modules/personal-records";
 import { LogMetricForm } from "./components/log-metric-form";
 import { MetricChart } from "./components/metric-chart";
 import { progressStyles as styles } from "./progress.styles";
@@ -65,6 +66,8 @@ export function ProgressPage() {
   return (
     <div>
       <h1 className={styles.title}>Progress</h1>
+
+      <h2 className={styles.sectionTitle}>Body Metrics</h2>
 
       {!isLoading && (
         <div className={styles.statRow}>
@@ -169,6 +172,10 @@ export function ProgressPage() {
           </TableBody>
         </Table>
       )}
+
+      <div className={styles.divider}>
+        <PersonalRecordsSection />
+      </div>
     </div>
   );
 }
