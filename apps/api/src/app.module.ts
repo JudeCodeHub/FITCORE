@@ -11,6 +11,7 @@ import { ExercisesModule } from './exercises/exercises.module.js';
 import { MailerModule } from './mailer/mailer.module.js';
 import { MaintenanceTicketsModule } from './maintenance-tickets/maintenance-tickets.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
+import { NotificationsModule } from './notifications/notifications.module.js';
 import { PersonalRecordsModule } from './personal-records/personal-records.module.js';
 import { PlansModule } from './plans/plans.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -40,6 +41,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     ProgressPhotosModule,
     EquipmentModule,
     MaintenanceTicketsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

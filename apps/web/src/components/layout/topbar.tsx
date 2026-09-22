@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ROLE_LABEL, type UserRole } from "@/lib/nav-config";
+import { NotificationBell } from "@/modules/notifications";
 
 export function Topbar({
   role,
@@ -23,6 +24,7 @@ export function Topbar({
         {title ?? ROLE_LABEL[role]}
       </h1>
       <div className="flex items-center gap-3">
+        <NotificationBell />
         <span className="text-sm text-muted-foreground">{userName}</span>
         <Avatar className="h-8 w-8">
           <AvatarFallback>{initials}</AvatarFallback>
