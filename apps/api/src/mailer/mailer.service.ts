@@ -22,4 +22,36 @@ export class MailerService {
       `[stub email] You've been invited to join FitCore as ${role}, ${to}: ${link}`,
     );
   }
+
+  sendBookingConfirmationEmail(
+    to: string,
+    className: string,
+    startTime: Date,
+  ) {
+    this.logger.log(
+      `[stub email] Booking confirmed for ${to}: ${className} at ${startTime.toISOString()}`,
+    );
+  }
+
+  sendWaitlistedEmail(to: string, className: string, position: number) {
+    this.logger.log(
+      `[stub email] Waitlisted for ${to}: ${className}, position #${position}`,
+    );
+  }
+
+  sendPtSessionConfirmationEmail(
+    to: string,
+    otherPartyName: string,
+    startTime: Date,
+  ) {
+    this.logger.log(
+      `[stub email] PT session confirmed for ${to}, with ${otherPartyName} at ${startTime.toISOString()}`,
+    );
+  }
+
+  sendRenewalReminderEmail(to: string, planName: string, endDate: Date) {
+    this.logger.log(
+      `[stub email] Membership renewal reminder for ${to}: ${planName} expires ${endDate.toISOString()}`,
+    );
+  }
 }

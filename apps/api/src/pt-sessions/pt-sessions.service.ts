@@ -3,8 +3,11 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { MailerService } from '../mailer/mailer.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { TrainerAvailabilityService } from '../trainer-availability/trainer-availability.service.js';
 import type { CreatePtSessionDto } from './dto/create-pt-session.dto.js';
@@ -13,9 +16,13 @@ type RequestingUser = { sub: string; role: string };
 
 @Injectable()
 export class PtSessionsService {
+  private readonly logger = new Logger(PtSessionsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly availability: TrainerAvailabilityService,
+    private readonly mailer: MailerService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(dto: CreatePtSessionDto) {
@@ -63,7 +70,7 @@ export class PtSessionsService {
       throw new ConflictException('This member already has a session booked in that time range');
     }
 
-    return this.prisma.pTSession.create({
+    const session = await this.prisma.pTSession.create({
       data: {
         trainerId: dto.trainerId,
         memberId: dto.memberId,
@@ -71,6 +78,37 @@ export class PtSessionsService {
         endTime: end,
       },
     });
+
+    try {
+      this.mailer.sendPtSessionConfirmationEmail(
+        member.email,
+        trainer.name,
+        start,
+      );
+      this.mailer.sendPtSessionConfirmationEmail(
+        trainer.email,
+        member.name,
+        start,
+      );
+      await Promise.all([
+        this.notifications.create({
+          userId: member.id,
+          type: 'PT_SESSION_CONFIRMATION',
+          title: 'PT session confirmed',
+          message: `Your session with ${trainer.name} is confirmed for ${start.toLocaleString()}.`,
+        }),
+        this.notifications.create({
+          userId: trainer.id,
+          type: 'PT_SESSION_CONFIRMATION',
+          title: 'PT session booked',
+          message: `You have a new session with ${member.name} at ${start.toLocaleString()}.`,
+        }),
+      ]);
+    } catch (err) {
+      this.logger.warn(`Failed to send PT session notification: ${String(err)}`);
+    }
+
+    return session;
   }
 
   async findMine(userId: string) {

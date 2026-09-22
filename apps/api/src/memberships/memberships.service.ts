@@ -1,8 +1,12 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { MailerService } from '../mailer/mailer.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { AddDependentDto } from './dto/add-dependent.dto.js';
 import type { ChangePlanDto } from './dto/change-plan.dto.js';
@@ -11,6 +15,7 @@ import type { FreezeMembershipDto } from './dto/freeze-membership.dto.js';
 
 const MAX_FREEZE_DAYS_PER_YEAR = 30;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const RENEWAL_REMINDER_DAYS_BEFORE = 3;
 
 function round2(amount: number): number {
   return Math.round(amount * 100) / 100;
@@ -56,7 +61,13 @@ function addDuration(
 
 @Injectable()
 export class MembershipsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(MembershipsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailer: MailerService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   findAll() {
     return this.prisma.membership.findMany({
@@ -412,5 +423,57 @@ export class MembershipsService {
       where: { id },
       data: { status: to },
     });
+  }
+
+  /** Memberships whose endDate falls on the calendar day exactly `days`
+   * from now (UTC). Checking an exact day, not a "within N days" range,
+   * is what keeps a daily cron job from re-sending the same reminder
+   * every day leading up to expiry — a membership only ever matches this
+   * query once. */
+  async findExpiringInDays(days: number) {
+    const target = new Date();
+    target.setUTCDate(target.getUTCDate() + days);
+    const startOfDay = new Date(
+      Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), target.getUTCDate()),
+    );
+    const endOfDay = new Date(startOfDay.getTime() + MS_PER_DAY);
+
+    return this.prisma.membership.findMany({
+      where: {
+        status: 'ACTIVE',
+        endDate: { gte: startOfDay, lt: endOfDay },
+      },
+      include: {
+        plan: true,
+        user: { select: { id: true, name: true, email: true } },
+      },
+    });
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  async sendRenewalReminders() {
+    const expiring = await this.findExpiringInDays(RENEWAL_REMINDER_DAYS_BEFORE);
+
+    for (const membership of expiring) {
+      try {
+        this.mailer.sendRenewalReminderEmail(
+          membership.user.email,
+          membership.plan.name,
+          membership.endDate,
+        );
+        await this.notifications.create({
+          userId: membership.user.id,
+          type: 'MEMBERSHIP_RENEWAL',
+          title: 'Membership renewal reminder',
+          message: `Your ${membership.plan.name} membership expires on ${membership.endDate.toLocaleDateString()}.`,
+        });
+      } catch (err) {
+        this.logger.warn(
+          `Failed to send renewal reminder for membership ${membership.id}: ${String(err)}`,
+        );
+      }
+    }
+
+    return { checked: expiring.length };
   }
 }

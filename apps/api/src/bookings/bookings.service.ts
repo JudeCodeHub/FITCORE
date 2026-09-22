@@ -3,9 +3,12 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
+import { MailerService } from '../mailer/mailer.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateBookingDto } from './dto/create-booking.dto.js';
 
@@ -13,10 +16,16 @@ const CANCELLATION_CUTOFF_HOURS = 2;
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(BookingsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailer: MailerService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async create(dto: CreateBookingDto) {
-    return this.prisma.$transaction(async (tx) => {
+    const booking = await this.prisma.$transaction(async (tx) => {
       const locked = await tx.$queryRaw<{ capacity: number }[]>`
         SELECT capacity FROM "Class" WHERE id = ${dto.classId} FOR UPDATE
       `;
@@ -64,6 +73,51 @@ export class BookingsService {
 
       return booking;
     });
+
+    try {
+      await this.notifyBooked(dto.userId, dto.classId, booking);
+    } catch (err) {
+      this.logger.warn(`Failed to send booking notification: ${String(err)}`);
+    }
+
+    return booking;
+  }
+
+  private async notifyBooked(
+    userId: string,
+    classId: string,
+    booking: { status: string },
+  ) {
+    const [user, cls] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: userId } }),
+      this.prisma.class.findUnique({ where: { id: classId } }),
+    ]);
+    if (!user || !cls) return;
+
+    if (booking.status === 'WAITLISTED') {
+      const position = await this.prisma.booking.count({
+        where: { classId, status: 'WAITLISTED' },
+      });
+      this.mailer.sendWaitlistedEmail(user.email, cls.name, position);
+      await this.notifications.create({
+        userId: user.id,
+        type: 'BOOKING_CONFIRMATION',
+        title: 'Added to waitlist',
+        message: `You're #${position} on the waitlist for ${cls.name}.`,
+      });
+    } else {
+      this.mailer.sendBookingConfirmationEmail(
+        user.email,
+        cls.name,
+        cls.startTime,
+      );
+      await this.notifications.create({
+        userId: user.id,
+        type: 'BOOKING_CONFIRMATION',
+        title: 'Booking confirmed',
+        message: `You're booked for ${cls.name} on ${cls.startTime.toLocaleString()}.`,
+      });
+    }
   }
 
   async findByClass(classId: string) {

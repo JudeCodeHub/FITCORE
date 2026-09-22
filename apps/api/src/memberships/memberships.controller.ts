@@ -37,6 +37,16 @@ export class MembershipsController {
     return this.membershipsService.findAll();
   }
 
+  // Manual trigger for the daily @Cron job — lets an admin resend today's
+  // batch on demand instead of waiting for 9am, and gives this a testable
+  // HTTP entry point.
+  @Post('renewal-reminders/run')
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.OK)
+  runRenewalReminders() {
+    return this.membershipsService.sendRenewalReminders();
+  }
+
   @Get(':id')
   @Roles('ADMIN')
   findOne(@Param('id') id: string) {
