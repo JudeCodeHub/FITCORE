@@ -15,6 +15,13 @@ import type { UpdateClassDto } from './dto/update-class.dto.js';
 type RequestingUser = { sub: string; role: string };
 
 const ICAL_DAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'] as const;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DEFAULT_ATTENDANCE_WINDOW_DAYS = 90;
+const MAX_ATTENDANCE_WINDOW_DAYS = 365;
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
 
 function assertTimeRange(startTime: string, endTime: string) {
   if (new Date(endTime) <= new Date(startTime)) {
@@ -222,6 +229,84 @@ export class ClassesService {
     if (requester.role === 'ADMIN') return;
     if (requester.role === 'TRAINER' && requester.sub === trainerId) return;
     throw new ForbiddenException('You can only manage your own classes');
+  }
+
+  /** Most/least popular classes by fill rate over a trailing window.
+   * There's no attendance/check-in record tied to a specific class (the
+   * `CheckIn` model is a generic gym entry, not linked to `classId`), so
+   * "attendance" is approximated as BOOKED bookings on classes that have
+   * already concluded (`endTime` inside the window) — WAITLISTED bookings
+   * never got a seat and are reported separately as a demand signal, not
+   * counted as attendance. Occurrences are grouped by `name`, since a
+   * recurring class's individual sessions (sharing one `seriesId`) are the
+   * same class type running repeatedly, not distinct classes to rank
+   * separately. */
+  async getAttendanceAnalytics(days?: number) {
+    const windowDays = Math.min(
+      Math.max(days ?? DEFAULT_ATTENDANCE_WINDOW_DAYS, 1),
+      MAX_ATTENDANCE_WINDOW_DAYS,
+    );
+    const until = new Date();
+    const since = new Date(until.getTime() - windowDays * MS_PER_DAY);
+
+    const classes = await this.prisma.class.findMany({
+      where: { endTime: { gte: since, lte: until } },
+      select: {
+        name: true,
+        capacity: true,
+        bookings: {
+          where: { status: { in: ['BOOKED', 'WAITLISTED'] } },
+          select: { status: true },
+        },
+      },
+    });
+
+    const byName = new Map<
+      string,
+      {
+        name: string;
+        occurrenceCount: number;
+        totalCapacity: number;
+        totalAttended: number;
+        totalWaitlisted: number;
+      }
+    >();
+
+    for (const cls of classes) {
+      const entry = byName.get(cls.name) ?? {
+        name: cls.name,
+        occurrenceCount: 0,
+        totalCapacity: 0,
+        totalAttended: 0,
+        totalWaitlisted: 0,
+      };
+      entry.occurrenceCount += 1;
+      entry.totalCapacity += cls.capacity;
+      for (const b of cls.bookings) {
+        if (b.status === 'BOOKED') entry.totalAttended += 1;
+        else entry.totalWaitlisted += 1;
+      }
+      byName.set(cls.name, entry);
+    }
+
+    const rows = Array.from(byName.values())
+      .map((e) => ({
+        ...e,
+        avgFillRatePercent:
+          e.totalCapacity > 0
+            ? round2((e.totalAttended / e.totalCapacity) * 100)
+            : 0,
+      }))
+      .sort((a, b) => b.avgFillRatePercent - a.avgFillRatePercent);
+
+    return {
+      windowDays,
+      since,
+      until,
+      classes: rows,
+      mostPopular: rows[0] ?? null,
+      leastPopular: rows.length > 0 ? rows[rows.length - 1] : null,
+    };
   }
 
   private withSeatInfo<T extends { capacity: number; bookings: { id: string }[] }>(

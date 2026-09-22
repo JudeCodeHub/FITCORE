@@ -43,7 +43,21 @@ the Phase 5, 6, and (now) Phase 9 pieces:
   arrived is a withdrawn signup, not a churned member, so it's dropped
   entirely — it counts toward neither new members, active members, nor
   churn.
-- `AnalyticsNav` — the small link row all four pages share to switch
+- `AttendancePage` — rendered at `/admin/analytics/attendance`. Most
+  and least popular classes by fill rate over a trailing window
+  (90 days default, `GET /classes/attendance-analytics?days=`,
+  `ADMIN` only), a fill-rate-by-class bar chart, and a detail table.
+  Classes are grouped by `name` — a recurring class's individual
+  sessions (sharing one `seriesId`) are the same class type running
+  repeatedly, not distinct classes to rank separately. **There's no
+  attendance/check-in record tied to a specific class** (`CheckIn` is a
+  generic gym entry, not linked to `classId`), so "attended" is
+  approximated as BOOKED bookings on classes whose `endTime` has
+  already passed; WAITLISTED bookings never held a seat and are
+  reported separately as a demand signal, not counted toward fill rate.
+  Classes that haven't concluded yet are excluded entirely, regardless
+  of how full their booking list is.
+- `AnalyticsNav` — the small link row all five pages share to switch
   between them (this app has no `Tabs` primitive yet, so it's just
   styled `next/link`s with active-state via `usePathname()`).
 
@@ -52,5 +66,5 @@ windows, "hours available" is 0 and `utilizationPercent` comes back
 `null` (not `0` or `Infinity`) — the page shows a note explaining why
 instead of a misleading percentage.
 
-Later Phase 9 items (attendance, staff performance) will land here as
-their own pages too.
+Later Phase 9 items (staff performance) will land here as their own
+pages too.

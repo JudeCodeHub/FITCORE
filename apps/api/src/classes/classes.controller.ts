@@ -33,6 +33,16 @@ export class ClassesController {
     return this.classesService.findAll(query);
   }
 
+  // Must be registered before ':id' — otherwise Nest would match
+  // "/classes/attendance-analytics" as findOne with id="attendance-analytics".
+  @Get('attendance-analytics')
+  @Roles('ADMIN')
+  getAttendanceAnalytics(@Query('days') days?: string) {
+    return this.classesService.getAttendanceAnalytics(
+      days ? Number(days) : undefined,
+    );
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.classesService.findOne(id);

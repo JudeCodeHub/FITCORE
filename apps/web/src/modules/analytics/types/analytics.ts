@@ -57,3 +57,21 @@ export interface IGrowthChurnSummary {
   currentActiveCount: number;
   trend: IGrowthChurnPoint[];
 }
+
+export interface IClassAttendance {
+  name: string;
+  occurrenceCount: number;
+  totalCapacity: number;
+  totalAttended: number;
+  totalWaitlisted: number;
+  avgFillRatePercent: number;
+}
+
+export interface IAttendanceAnalytics {
+  windowDays: number;
+  since: string;
+  until: string;
+  classes: IClassAttendance[];
+  mostPopular: IClassAttendance | null;
+  leastPopular: IClassAttendance | null;
+}

@@ -1,5 +1,6 @@
 import { apiFetch } from "@/shared/api-client/http";
 import type {
+  IAttendanceAnalytics,
   IGrowthChurnSummary,
   IMrrTrendPoint,
   IPeakHours,
@@ -33,6 +34,13 @@ export const analyticsService = {
     const query = months ? `?months=${months}` : "";
     return apiFetch<IGrowthChurnSummary>(
       `/memberships/growth-churn${query}`,
+    );
+  },
+
+  getAttendanceAnalytics(days?: number) {
+    const query = days ? `?days=${days}` : "";
+    return apiFetch<IAttendanceAnalytics>(
+      `/classes/attendance-analytics${query}`,
     );
   },
 };

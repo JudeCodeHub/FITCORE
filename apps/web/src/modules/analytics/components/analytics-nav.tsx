@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/admin/analytics/trainers", label: "Trainer Utilization" },
   { href: "/admin/analytics/revenue", label: "Revenue" },
   { href: "/admin/analytics/growth", label: "Growth & Churn" },
+  { href: "/admin/analytics/attendance", label: "Class Attendance" },
 ];
 
 export function AnalyticsNav() {
