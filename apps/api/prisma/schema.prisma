@@ -47,6 +47,9 @@ model User {
   bodyMetrics                 BodyMetric[]
   progressPhotos              ProgressPhoto[]
   personalRecords             PersonalRecord[]
+  reportedTickets             MaintenanceTicket[] @relation("MaintenanceTicketReporter")
+  resolvedTickets             MaintenanceTicket[] @relation("MaintenanceTicketResolver")
+  notifications               Notification[]
 }
 
 model Session {
@@ -344,4 +347,77 @@ model PersonalRecord {
 
   @@index([userId])
   @@index([exerciseId])
+}
+
+enum EquipmentStatus {
+  OPERATIONAL
+  OUT_OF_SERVICE
+  RETIRED
+}
+
+model Equipment {
+  id           String          @id @default(cuid())
+  name         String
+  category     String
+  purchaseDate DateTime?
+  status       EquipmentStatus @default(OPERATIONAL)
+  notes        String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  maintenanceTickets MaintenanceTicket[]
+
+  @@index([status])
+}
+
+enum MaintenanceTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model MaintenanceTicket {
+  id           String                  @id @default(cuid())
+  equipmentId  String
+  equipment    Equipment               @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  reportedById String
+  reportedBy   User                    @relation("MaintenanceTicketReporter", fields: [reportedById], references: [id])
+  description  String
+  status       MaintenanceTicketStatus @default(OPEN)
+  resolvedById String?
+  resolvedBy   User?                   @relation("MaintenanceTicketResolver", fields: [resolvedById], references: [id])
+  resolvedAt   DateTime?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@index([equipmentId])
+  @@index([status])
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMATION
+  CLASS_REMINDER
+  MEMBERSHIP_RENEWAL
+  PAYMENT_ALERT
+  PT_SESSION_CONFIRMATION
+  MAINTENANCE_UPDATE
+  GENERAL
+}
+
+/// In-app notification center entries — separate from the act of sending
+/// an email. A given event (e.g. a booking confirmation) may create one
+/// of these AND send an email; this table only backs the read/unread
+/// in-app list, not delivery/retry state for email itself.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([userId, readAt])
 }
