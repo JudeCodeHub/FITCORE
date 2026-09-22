@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { bookingsService } from "@/modules/bookings";
 import type { IMyBooking } from "@/modules/bookings";
+import { RatingBadge } from "@/modules/reviews";
 import { classesService } from "@/modules/classes/services/classes.service";
 import type { IClass } from "@/modules/classes/types/class";
 import { BookClassDialog } from "./book-class-dialog";
@@ -187,6 +188,9 @@ export function WeeklyTimetable({
                         <div className={isLow ? styles.seatsLow : styles.seats}>
                           {c.availableSeats}/{c.capacity} open
                         </div>
+                        {c.rating.count > 0 && (
+                          <RatingBadge rating={c.rating} />
+                        )}
 
                         {interactive && (
                           <div className={styles.actionRow}>

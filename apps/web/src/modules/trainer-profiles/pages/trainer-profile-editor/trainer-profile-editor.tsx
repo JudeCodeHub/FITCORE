@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/shared/api-client/http";
 import { useAuth } from "@/shared/auth/auth-context";
+import { RatingBadge } from "@/modules/reviews";
+import type { IRating } from "@/modules/reviews";
 import { trainerProfilesService } from "@/modules/trainer-profiles/services/trainer-profiles.service";
 import { trainerProfileEditorStyles as styles } from "./trainer-profile-editor.styles";
 
@@ -32,6 +34,7 @@ export function TrainerProfileEditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
+  const [rating, setRating] = useState<IRating | null>(null);
 
   useEffect(() => {
     trainerProfilesService
@@ -45,6 +48,13 @@ export function TrainerProfileEditorPage() {
       })
       .finally(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    trainerProfilesService.getByTrainerId(user.id).then((res) => {
+      setRating(res.rating);
+    });
+  }, [user]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -95,6 +105,11 @@ export function TrainerProfileEditorPage() {
               <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
             <p className={styles.hint}>Members see this on your profile.</p>
+            {rating && (
+              <div className="mt-2">
+                <RatingBadge rating={rating} />
+              </div>
+            )}
           </CardContent>
         </Card>
 

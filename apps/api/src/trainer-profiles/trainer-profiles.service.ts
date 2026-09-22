@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { ReviewsService } from '../reviews/reviews.service.js';
 import type { UpsertTrainerProfileDto } from './dto/upsert-trainer-profile.dto.js';
 
 const DEFAULT_UTILIZATION_WINDOW_DAYS = 30;
@@ -29,7 +30,10 @@ function sumMinutes(items: { startTime: Date; endTime: Date }[]): number {
 
 @Injectable()
 export class TrainerProfilesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviews: ReviewsService,
+  ) {}
 
   upsertMine(userId: string, dto: UpsertTrainerProfileDto) {
     return this.prisma.trainerProfile.upsert({
@@ -54,12 +58,21 @@ export class TrainerProfilesService {
     return this.prisma.trainerProfile.findUnique({ where: { userId } });
   }
 
-  findAll() {
-    return this.prisma.user.findMany({
+  async findAll() {
+    const trainers = await this.prisma.user.findMany({
       where: { role: 'TRAINER' },
       select: { id: true, name: true, trainerProfile: true },
       orderBy: { name: 'asc' },
     });
+
+    const ratings = await this.reviews.getTrainerRatings(
+      trainers.map((t) => t.id),
+    );
+
+    return trainers.map((t) => ({
+      ...t,
+      rating: ratings.get(t.id) ?? { average: null, count: 0 },
+    }));
   }
 
   async findByTrainer(trainerId: string) {
@@ -74,8 +87,9 @@ export class TrainerProfilesService {
     const profile = await this.prisma.trainerProfile.findUnique({
       where: { userId: trainerId },
     });
+    const rating = await this.reviews.getTrainerRating(trainerId);
 
-    return { user: { id: user.id, name: user.name }, profile };
+    return { user: { id: user.id, name: user.name }, profile, rating };
   }
 
   listMyMembers(trainerId: string) {

@@ -1,3 +1,5 @@
+import type { IRating } from "@/modules/reviews";
+
 export interface IClassTrainer {
   id: string;
   name: string;
@@ -14,6 +16,7 @@ export interface IClass {
   recurrenceRule: string | null;
   bookedCount: number;
   availableSeats: number;
+  rating: IRating;
   createdAt: string;
   updatedAt: string;
 }

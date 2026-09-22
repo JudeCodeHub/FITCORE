@@ -50,6 +50,7 @@ model User {
   reportedTickets             MaintenanceTicket[] @relation("MaintenanceTicketReporter")
   resolvedTickets             MaintenanceTicket[] @relation("MaintenanceTicketResolver")
   notifications               Notification[]
+  reviews                     Review[]
 }
 
 model Session {
@@ -188,6 +189,7 @@ model Booking {
   status      BookingStatus @default(BOOKED)
   bookedAt    DateTime      @default(now())
   cancelledAt DateTime?
+  review      Review?
 
   @@index([classId])
   @@index([userId])
@@ -210,9 +212,32 @@ model PTSession {
   cancelledAt DateTime?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  review      Review?
 
   @@index([trainerId])
   @@index([memberId])
+}
+
+/// A member's post-session rating (1-5) of either a class they attended
+/// (via `bookingId`) or a PT session they had (via `ptSessionId`) — exactly
+/// one of the two is set, enforced at the application layer since Postgres
+/// has no native XOR column constraint. A class review also counts toward
+/// that class's trainer's overall rating (the trainer taught it), so there
+/// is no separate "trainer rating" field — it's derived by joining through
+/// `booking.class.trainerId` or `ptSession.trainerId`.
+model Review {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingId   String?    @unique
+  booking     Booking?   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  ptSessionId String?    @unique
+  ptSession   PTSession? @relation(fields: [ptSessionId], references: [id], onDelete: Cascade)
+  rating      Int
+  comment     String?
+  createdAt   DateTime   @default(now())
+
+  @@index([userId])
 }
 
 model TrainerAvailability {

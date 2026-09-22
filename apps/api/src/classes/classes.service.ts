@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { ReviewsService } from '../reviews/reviews.service.js';
 import { TrainerAvailabilityService } from '../trainer-availability/trainer-availability.service.js';
 import type { CreateClassDto } from './dto/create-class.dto.js';
 import type { CreateRecurringClassDto } from './dto/create-recurring-class.dto.js';
@@ -34,6 +35,7 @@ export class ClassesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly availability: TrainerAvailabilityService,
+    private readonly reviews: ReviewsService,
   ) {}
 
   async findAll(query: ListClassesQueryDto) {
@@ -55,7 +57,14 @@ export class ClassesService {
       orderBy: { startTime: 'asc' },
     });
 
-    return classes.map(this.withSeatInfo);
+    const ratings = await this.reviews.getClassRatings([
+      ...new Set(classes.map((c) => c.name)),
+    ]);
+
+    return classes.map((c) => ({
+      ...this.withSeatInfo(c),
+      rating: ratings.get(c.name) ?? { average: null, count: 0 },
+    }));
   }
 
   async findOne(id: string) {
@@ -67,7 +76,11 @@ export class ClassesService {
       },
     });
     if (!cls) throw new NotFoundException('Class not found');
-    return this.withSeatInfo(cls);
+
+    return {
+      ...this.withSeatInfo(cls),
+      rating: await this.reviews.getClassRating(cls.name),
+    };
   }
 
   async create(dto: CreateClassDto, requester: RequestingUser) {

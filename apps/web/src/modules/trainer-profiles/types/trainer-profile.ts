@@ -1,3 +1,5 @@
+import type { IRating } from "@/modules/reviews";
+
 export interface ITrainerProfile {
   id: string;
   userId: string;
@@ -20,11 +22,13 @@ export interface ITrainerSummary {
   id: string;
   name: string;
   trainerProfile: ITrainerProfile | null;
+  rating: IRating;
 }
 
 export interface ITrainerPublicProfile {
   user: { id: string; name: string };
   profile: ITrainerProfile | null;
+  rating: IRating;
 }
 
 export interface IAssignedMember {
