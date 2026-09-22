@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
+import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
 import type { IGrowthChurnSummary } from "@/modules/analytics/types/analytics";
 import { growthStyles as styles } from "./growth.styles";
@@ -44,6 +45,11 @@ export function GrowthPage() {
     <div>
       <AnalyticsNav />
       <h1 className={styles.title}>Member Growth & Churn</h1>
+      <ReportExportButtons
+        onExport={(format) =>
+          analyticsService.exportGrowthChurnReport(format, 12)
+        }
+      />
 
       {isLoading || !data ? (
         <p className="text-sm text-muted-foreground">Loading…</p>

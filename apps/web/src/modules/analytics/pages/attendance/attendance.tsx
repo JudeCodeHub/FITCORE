@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
+import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
 import type { IAttendanceAnalytics } from "@/modules/analytics/types/analytics";
 import { attendanceStyles as styles } from "./attendance.styles";
@@ -39,6 +40,11 @@ export function AttendancePage() {
     <div>
       <AnalyticsNav />
       <h1 className={styles.title}>Class Attendance</h1>
+      <ReportExportButtons
+        onExport={(format) =>
+          analyticsService.exportAttendanceReport(format, 90)
+        }
+      />
 
       {isLoading || !data ? (
         <p className="text-sm text-muted-foreground">Loading…</p>

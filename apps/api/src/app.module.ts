@@ -18,6 +18,7 @@ import { PlansModule } from './plans/plans.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProgressPhotosModule } from './progress-photos/progress-photos.module.js';
 import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
+import { ReportsModule } from './reports/reports.module.js';
 import { RevenueModule } from './revenue/revenue.module.js';
 import { TrainerAvailabilityModule } from './trainer-availability/trainer-availability.module.js';
 import { TrainerProfilesModule } from './trainer-profiles/trainer-profiles.module.js';
@@ -46,6 +47,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     MaintenanceTicketsModule,
     NotificationsModule,
     RevenueModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

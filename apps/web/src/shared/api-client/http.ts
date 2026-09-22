@@ -81,3 +81,38 @@ export async function apiFetch<T>(
   if (text.length === 0) return undefined as T;
   return JSON.parse(text);
 }
+
+/** Like `apiFetch`, but for binary file downloads (reports, exports) —
+ * `apiFetch` always parses the response body as JSON, which a CSV/PDF
+ * response isn't. Shares the same 401-refresh-and-retry logic. */
+export async function apiFetchBlob(
+  path: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const doFetch = () => {
+    const headers = new Headers();
+    const token = getAccessToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    return fetch(`${API_URL}${path}`, { headers });
+  };
+
+  let res = await doFetch();
+
+  if (res.status === 401) {
+    const refreshed = await refreshOnce();
+    if (refreshed) {
+      res = await doFetch();
+    } else {
+      clearTokens();
+    }
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, body.message ?? "Request failed");
+  }
+
+  const disposition = res.headers.get("Content-Disposition") ?? "";
+  const filename = /filename="?([^"]+)"?/.exec(disposition)?.[1] ?? "report";
+
+  return { blob: await res.blob(), filename };
+}

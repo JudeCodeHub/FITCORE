@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
+import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
 import type { IPeakHours } from "@/modules/analytics/types/analytics";
 import { peakHoursStyles as styles } from "./peak-hours.styles";
@@ -41,6 +42,11 @@ export function PeakHoursPage() {
     <div>
       <AnalyticsNav />
       <h1 className={styles.title}>Peak Hours</h1>
+      <ReportExportButtons
+        onExport={(format) =>
+          analyticsService.exportPeakHoursReport(format, windowDays)
+        }
+      />
 
       <div className={styles.controls}>
         {WINDOW_OPTIONS.map((opt) => (

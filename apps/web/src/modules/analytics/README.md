@@ -60,6 +60,28 @@ the Phase 5, 6, and (now) Phase 9 pieces:
 - `AnalyticsNav` — the small link row all five pages share to switch
   between them (this app has no `Tabs` primitive yet, so it's just
   styled `next/link`s with active-state via `usePathname()`).
+- `ReportExportButtons` — "Export CSV" / "Export PDF" buttons shown on
+  every page above, backed by the API's `src/reports/` module
+  (`GET /reports/revenue|growth-churn|attendance|peak-hours?format=csv|pdf`,
+  `ADMIN` only — the same trend/table data each page already renders,
+  serialized instead of charted). CSV/PDF generation itself lives in
+  `apps/api/src/reports/csv.util.ts` and `pdf.util.ts`, reused across
+  all four reports rather than duplicated per domain, since turning
+  rows into a CSV or a paginated PDF table has no domain logic in it
+  (unlike the MRR/churn/attendance calculations themselves, which do
+  and are deliberately *not* shared). The frontend side
+  (`apiFetchBlob` in `shared/api-client/http.ts`,
+  `downloadReport` in `shared/api-client/download.ts`) exists because
+  `apiFetch` always parses the response as JSON, which a file download
+  isn't. **Getting the real filename out of `Content-Disposition`
+  required exposing that header in CORS** (`exposedHeaders` in
+  `main.ts`) — browsers hide all but a small header safelist from
+  `fetch()` on cross-origin requests otherwise, so the downloaded file
+  would silently save as a generic `report.csv`/`report.pdf` instead
+  of e.g. `revenue-mrr-trend-2026-09-22.csv`. This was only caught by
+  actually clicking the buttons in a real (headless) browser — every
+  other check here (`tsc`, lint, route-compiles) runs entirely
+  server-side and can't see a bug in an `onClick` handler.
 
 **Utilization caveat:** if a trainer hasn't set any availability
 windows, "hours available" is 0 and `utilizationPercent` comes back

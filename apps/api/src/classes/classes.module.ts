@@ -7,5 +7,6 @@ import { ClassesService } from './classes.service.js';
   imports: [TrainerAvailabilityModule],
   controllers: [ClassesController],
   providers: [ClassesService],
+  exports: [ClassesService],
 })
 export class ClassesModule {}

@@ -6,5 +6,6 @@ import { CheckInsService } from './check-ins.service.js';
 @Module({
   controllers: [CheckInsController],
   providers: [CheckInsService, CheckInsGateway],
+  exports: [CheckInsService],
 })
 export class CheckInsModule {}

@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
+import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
 import type {
   IMrrTrendPoint,
@@ -45,6 +46,11 @@ export function RevenuePage() {
     <div>
       <AnalyticsNav />
       <h1 className={styles.title}>Revenue</h1>
+      <ReportExportButtons
+        onExport={(format) =>
+          analyticsService.exportRevenueReport(format, 12)
+        }
+      />
 
       {isLoading || !summary ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
