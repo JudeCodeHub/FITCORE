@@ -7,6 +7,7 @@ import { cn } from "cn";
 const LINKS = [
   { href: "/admin/analytics", label: "Peak Hours" },
   { href: "/admin/analytics/trainers", label: "Trainer Utilization" },
+  { href: "/admin/analytics/revenue", label: "Revenue" },
 ];
 
 export function AnalyticsNav() {

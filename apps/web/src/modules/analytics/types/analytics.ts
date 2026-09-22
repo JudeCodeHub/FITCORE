@@ -25,3 +25,21 @@ export interface ITrainerUtilization {
     utilizationPercent: number | null;
   };
 }
+
+export interface IRevenueByPlan {
+  planId: string;
+  planName: string;
+  activeCount: number;
+  mrr: number;
+}
+
+export interface IRevenueSummary {
+  totalMrr: number;
+  activeMembershipCount: number;
+  byPlan: IRevenueByPlan[];
+}
+
+export interface IMrrTrendPoint {
+  month: string;
+  mrr: number;
+}

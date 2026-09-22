@@ -1,8 +1,7 @@
 # analytics module
 
-Home for the Admin Dashboard & Analytics section (spec 3.10). Full
-revenue/churn/attendance analytics are Phase 9 — this module currently
-holds the Phase 5 and Phase 6 pieces:
+Home for the Admin Dashboard & Analytics section (spec 3.10). Holds
+the Phase 5, 6, and (now) Phase 9 pieces:
 
 - `PeakHoursPage` — rendered at `/admin/analytics`. A day-of-week ×
   hour-of-day heatmap of check-in volume, backed by
@@ -21,7 +20,20 @@ holds the Phase 5 and Phase 6 pieces:
   (`ADMIN`) — the same query also powers a trainer's own
   `GET /trainer-profiles/me/utilization`, not yet consumed by any
   frontend page.
-- `AnalyticsNav` — the small link row both pages share to switch
+- `RevenuePage` — rendered at `/admin/analytics/revenue`. Total MRR,
+  active membership count, an MRR-trend line chart (last 12 months by
+  default, `GET /revenue/mrr-trend?months=`), and a revenue-by-plan
+  bar chart + table (`GET /revenue/summary`), both `ADMIN` only.
+  **There's no payment ledger yet** (Stripe/Phase 3 is still
+  deferred) — MRR is derived entirely from active `Membership` records
+  and each plan's price/duration, the same way real MRR dashboards
+  compute it even *with* a payment processor (MRR describes recurring
+  subscription run-rate, not literal cash received that day). The
+  historical trend has one documented approximation: a cancelled
+  membership's true stop date isn't stored, so it's estimated as
+  `min(endDate, updatedAt)`. The page shows this caveat inline, not
+  just in this README.
+- `AnalyticsNav` — the small link row all three pages share to switch
   between them (this app has no `Tabs` primitive yet, so it's just
   styled `next/link`s with active-state via `usePathname()`).
 
@@ -30,5 +42,5 @@ windows, "hours available" is 0 and `utilizationPercent` comes back
 `null` (not `0` or `Infinity`) — the page shows a note explaining why
 instead of a misleading percentage.
 
-Later Phase 9 items (revenue, churn, attendance, staff performance)
-will land here as their own pages.
+Later Phase 9 items (churn, attendance, staff performance) will land
+here as their own pages too.
