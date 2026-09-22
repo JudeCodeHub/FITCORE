@@ -6,6 +6,7 @@ import { BodyMetricsModule } from './body-metrics/body-metrics.module.js';
 import { BookingsModule } from './bookings/bookings.module.js';
 import { CheckInsModule } from './check-ins/check-ins.module.js';
 import { ClassesModule } from './classes/classes.module.js';
+import { EquipmentModule } from './equipment/equipment.module.js';
 import { ExercisesModule } from './exercises/exercises.module.js';
 import { MailerModule } from './mailer/mailer.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
@@ -36,6 +37,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     BodyMetricsModule,
     PersonalRecordsModule,
     ProgressPhotosModule,
+    EquipmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
