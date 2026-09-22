@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/admin/analytics", label: "Peak Hours" },
   { href: "/admin/analytics/trainers", label: "Trainer Utilization" },
   { href: "/admin/analytics/revenue", label: "Revenue" },
+  { href: "/admin/analytics/growth", label: "Growth & Churn" },
 ];
 
 export function AnalyticsNav() {

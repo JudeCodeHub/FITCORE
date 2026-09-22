@@ -33,7 +33,17 @@ the Phase 5, 6, and (now) Phase 9 pieces:
   membership's true stop date isn't stored, so it's estimated as
   `min(endDate, updatedAt)`. The page shows this caveat inline, not
   just in this README.
-- `AnalyticsNav` — the small link row all three pages share to switch
+- `GrowthPage` — rendered at `/admin/analytics/growth`. Current active
+  member count, a new-vs-churned-members bar chart, and a churn-rate
+  trend line chart (last 12 months by default), backed by
+  `GET /memberships/growth-churn?months=` (`ADMIN` only). Shares
+  revenue's no-status-history caveat (a cancelled membership's stop
+  date is estimated as `min(endDate, updatedAt)`), plus one more rule
+  specific to churn: a membership cancelled before its `startDate` ever
+  arrived is a withdrawn signup, not a churned member, so it's dropped
+  entirely — it counts toward neither new members, active members, nor
+  churn.
+- `AnalyticsNav` — the small link row all four pages share to switch
   between them (this app has no `Tabs` primitive yet, so it's just
   styled `next/link`s with active-state via `usePathname()`).
 
@@ -42,5 +52,5 @@ windows, "hours available" is 0 and `utilizationPercent` comes back
 `null` (not `0` or `Infinity`) — the page shows a note explaining why
 instead of a misleading percentage.
 
-Later Phase 9 items (churn, attendance, staff performance) will land
-here as their own pages too.
+Later Phase 9 items (attendance, staff performance) will land here as
+their own pages too.

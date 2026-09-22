@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
@@ -45,6 +46,15 @@ export class MembershipsController {
   @HttpCode(HttpStatus.OK)
   runRenewalReminders() {
     return this.membershipsService.sendRenewalReminders();
+  }
+
+  // Must also be registered before ':id' for the same reason as "me".
+  @Get('growth-churn')
+  @Roles('ADMIN')
+  getGrowthChurn(@Query('months') months?: string) {
+    return this.membershipsService.getGrowthChurnTrend(
+      months ? Number(months) : undefined,
+    );
   }
 
   @Get(':id')

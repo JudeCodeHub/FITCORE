@@ -16,6 +16,8 @@ import type { FreezeMembershipDto } from './dto/freeze-membership.dto.js';
 const MAX_FREEZE_DAYS_PER_YEAR = 30;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const RENEWAL_REMINDER_DAYS_BEFORE = 3;
+const MAX_TREND_MONTHS = 36;
+const DEFAULT_TREND_MONTHS = 12;
 
 function round2(amount: number): number {
   return Math.round(amount * 100) / 100;
@@ -57,6 +59,36 @@ function addDuration(
   else if (duration === 'QUARTERLY') result.setMonth(result.getMonth() + 3);
   else result.setFullYear(result.getFullYear() + 1);
   return result;
+}
+
+type MembershipForTrend = {
+  status: MembershipStatus;
+  startDate: Date;
+  endDate: Date;
+  updatedAt: Date;
+};
+
+/** Same approximation used by the revenue MRR trend: a CANCELLED
+ * membership's true stop date isn't stored (no `cancelledAt` field), so
+ * it's estimated as `min(endDate, updatedAt)` — cancelling updates the
+ * row, and that update almost always happens before the plan's natural
+ * end date. */
+function effectiveEnd(m: MembershipForTrend): Date {
+  return m.status === 'CANCELLED'
+    ? new Date(Math.min(m.endDate.getTime(), m.updatedAt.getTime()))
+    : m.endDate;
+}
+
+/** A CANCELLED membership can come directly from PENDING (`cancel`'s
+ * `from` list includes it) — someone who cancelled before ever being
+ * activated was never a served member, so losing them isn't churn. There's
+ * no `activatedAt` field to check directly, so this is approximated as
+ * "its scheduled start date had already passed by the time it was
+ * cancelled" — a membership still PENDING with a future start can only
+ * have been cancelled before serving anyone. EXPIRED is unambiguous:
+ * the state machine only allows it from ACTIVE/FROZEN. */
+function wasEverServed(m: MembershipForTrend): boolean {
+  return m.status === 'EXPIRED' || m.startDate < m.updatedAt;
 }
 
 @Injectable()
@@ -475,5 +507,94 @@ export class MembershipsService {
     }
 
     return { checked: expiring.length };
+  }
+
+  /** Month-by-month member growth and churn, reconstructed from
+   * `startDate`/`endDate`/`status` since there's no status-history table.
+   * Memberships cancelled before they were ever served (see
+   * `wasEverServed`) are dropped up front — they're withdrawn signups, not
+   * members who joined and left. For each remaining membership, per month:
+   *  - activeAtStart: memberships covering the first instant of the month
+   *    (same coverage check the revenue MRR trend uses)
+   *  - newMembers: memberships whose startDate falls inside the month
+   *  - churnedMembers: CANCELLED/EXPIRED memberships whose effective
+   *    coverage ends inside the month
+   *  - churnRatePercent: churnedMembers / activeAtStart as a percentage,
+   *    null when activeAtStart is 0 (no base to churn from, not 0% churn) */
+  async getGrowthChurnTrend(months?: number) {
+    const clamped = Math.min(
+      Math.max(months ?? DEFAULT_TREND_MONTHS, 1),
+      MAX_TREND_MONTHS,
+    );
+
+    const raw = await this.prisma.membership.findMany({
+      where: { status: { not: 'PENDING' } },
+      select: { status: true, startDate: true, endDate: true, updatedAt: true },
+    });
+    // A CANCELLED membership that was never served (see `wasEverServed`) is
+    // a signup that fell through before it ever took effect — it shouldn't
+    // count as a new member, an active member, or a churned one, so it's
+    // dropped entirely rather than patched into each metric individually.
+    const memberships = raw.filter(
+      (m) => m.status !== 'CANCELLED' || wasEverServed(m),
+    );
+
+    const now = new Date();
+    const trend: {
+      month: string;
+      activeAtStart: number;
+      newMembers: number;
+      churnedMembers: number;
+      netGrowth: number;
+      churnRatePercent: number | null;
+    }[] = [];
+
+    for (let i = clamped - 1; i >= 0; i--) {
+      const monthStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1),
+      );
+      const monthEnd = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i + 1, 1),
+      );
+
+      let activeAtStart = 0;
+      let newMembers = 0;
+      let churnedMembers = 0;
+
+      for (const m of memberships) {
+        const end = effectiveEnd(m);
+
+        if (m.startDate < monthStart && end >= monthStart) activeAtStart++;
+        if (m.startDate >= monthStart && m.startDate < monthEnd) {
+          newMembers++;
+        }
+        if (
+          (m.status === 'CANCELLED' || m.status === 'EXPIRED') &&
+          end >= monthStart &&
+          end < monthEnd
+        ) {
+          churnedMembers++;
+        }
+      }
+
+      trend.push({
+        month: monthStart.toISOString().slice(0, 7),
+        activeAtStart,
+        newMembers,
+        churnedMembers,
+        netGrowth: newMembers - churnedMembers,
+        churnRatePercent:
+          activeAtStart > 0
+            ? round2((churnedMembers / activeAtStart) * 100)
+            : null,
+      });
+    }
+
+    return {
+      currentActiveCount: await this.prisma.membership.count({
+        where: { status: 'ACTIVE' },
+      }),
+      trend,
+    };
   }
 }

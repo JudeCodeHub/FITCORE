@@ -43,3 +43,17 @@ export interface IMrrTrendPoint {
   month: string;
   mrr: number;
 }
+
+export interface IGrowthChurnPoint {
+  month: string;
+  activeAtStart: number;
+  newMembers: number;
+  churnedMembers: number;
+  netGrowth: number;
+  churnRatePercent: number | null;
+}
+
+export interface IGrowthChurnSummary {
+  currentActiveCount: number;
+  trend: IGrowthChurnPoint[];
+}

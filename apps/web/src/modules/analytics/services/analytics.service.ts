@@ -1,5 +1,6 @@
 import { apiFetch } from "@/shared/api-client/http";
 import type {
+  IGrowthChurnSummary,
   IMrrTrendPoint,
   IPeakHours,
   IRevenueSummary,
@@ -26,5 +27,12 @@ export const analyticsService = {
   getMrrTrend(months?: number) {
     const query = months ? `?months=${months}` : "";
     return apiFetch<IMrrTrendPoint[]>(`/revenue/mrr-trend${query}`);
+  },
+
+  getGrowthChurn(months?: number) {
+    const query = months ? `?months=${months}` : "";
+    return apiFetch<IGrowthChurnSummary>(
+      `/memberships/growth-churn${query}`,
+    );
   },
 };
