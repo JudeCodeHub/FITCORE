@@ -14,6 +14,7 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { label: "Plans", href: "/admin/plans" },
     { label: "Classes", href: "/admin/classes" },
     { label: "Equipment", href: "/admin/equipment" },
+    { label: "Maintenance", href: "/admin/maintenance-tickets" },
     { label: "Staff", href: "/admin/staff" },
     { label: "Analytics", href: "/admin/analytics" },
     { label: "Settings", href: "/admin/settings" },
@@ -24,11 +25,13 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { label: "Availability", href: "/trainer/availability" },
     { label: "PT Sessions", href: "/trainer/sessions" },
     { label: "My Profile", href: "/trainer/profile" },
+    { label: "Maintenance", href: "/trainer/maintenance-tickets" },
   ],
   FRONT_DESK: [
     { label: "Check-In", href: "/front-desk" },
     { label: "Member Lookup", href: "/front-desk/members" },
     { label: "Walk-In Sale", href: "/front-desk/sales" },
+    { label: "Maintenance", href: "/front-desk/maintenance-tickets" },
   ],
   MEMBER: [
     { label: "Dashboard", href: "/member" },

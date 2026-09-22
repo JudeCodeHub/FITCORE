@@ -1,9 +1,17 @@
 # equipment module
 
-Phase 8 home. `EquipmentManagementPage` — rendered at `/admin/equipment`
-(`ADMIN` only, mirroring how `plans` is admin-only). Standard CRUD
-table + dialog, following the exact pattern already established by
-`modules/plans`.
+Phase 8 home. `EquipmentManagementPage` — rendered at `/admin/equipment`.
+Standard CRUD table + dialog, following the exact pattern already
+established by `modules/plans`.
+
+**Read vs. write split:** `GET /equipment` is open to `ADMIN`,
+`TRAINER`, and `FRONT_DESK` (widened from admin-only once
+`maintenance-tickets` needed a way for any staff role to pick which
+equipment a ticket is about) — but `POST`/`PATCH`/`DELETE` stay
+`ADMIN`-only. This page itself is still only routed under `/admin`, so
+in practice only admins see this particular UI; the wider read access
+exists for `maintenance-tickets`' equipment picker, not for a
+trainer/front-desk-facing equipment page (none exists).
 
 - Name, category, purchase date, notes, and `status`
   (`OPERATIONAL` / `OUT_OF_SERVICE` / `RETIRED`).
