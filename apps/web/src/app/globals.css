@@ -56,6 +56,10 @@
   --color-status-overdue-foreground: var(--status-overdue-foreground);
   --color-status-expired: var(--status-expired);
   --color-status-expired-foreground: var(--status-expired-foreground);
+  --color-landing-accent: var(--landing-accent);
+  --color-landing-accent-foreground: var(--landing-accent-foreground);
+  --color-landing-contrast: var(--landing-contrast);
+  --color-landing-contrast-foreground: var(--landing-contrast-foreground);
 }
 
 :root {
@@ -101,6 +105,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Landing page only — a warm amber accent deliberately distinct from
+     the app's cool teal --primary, kept out of the authenticated app. */
+  --landing-accent: oklch(0.65 0.19 50);
+  --landing-accent-foreground: oklch(0.145 0 0);
+  /* Deliberately identical in :root and .dark — the closing CTA band is
+     always a dark high-contrast band regardless of site theme, unlike
+     --foreground/--background which flip. */
+  --landing-contrast: oklch(0.145 0 0);
+  --landing-contrast-foreground: oklch(0.985 0 0);
 }
 
 .dark {
@@ -145,6 +158,10 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --landing-accent: oklch(0.7 0.19 50);
+  --landing-accent-foreground: oklch(0.145 0 0);
+  --landing-contrast: oklch(0.145 0 0);
+  --landing-contrast-foreground: oklch(0.985 0 0);
 }
 
 @layer base {
