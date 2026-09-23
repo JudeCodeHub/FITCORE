@@ -8,12 +8,12 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { MailerService } from '../mailer/mailer.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { SettingsService } from '../settings/settings.service.js';
 import type { AddDependentDto } from './dto/add-dependent.dto.js';
 import type { ChangePlanDto } from './dto/change-plan.dto.js';
 import type { CreateMembershipDto } from './dto/create-membership.dto.js';
 import type { FreezeMembershipDto } from './dto/freeze-membership.dto.js';
 
-const MAX_FREEZE_DAYS_PER_YEAR = 30;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const RENEWAL_REMINDER_DAYS_BEFORE = 3;
 const MAX_TREND_MONTHS = 36;
@@ -99,6 +99,7 @@ export class MembershipsService {
     private readonly prisma: PrismaService,
     private readonly mailer: MailerService,
     private readonly notifications: NotificationsService,
+    private readonly settings: SettingsService,
   ) {}
 
   findAll() {
@@ -195,11 +196,12 @@ export class MembershipsService {
       throw new BadRequestException('Freeze end date must be in the future');
     }
 
+    const { freezeDaysPerYearLimit } = await this.settings.getPolicy();
     const requestedDays = Math.ceil(
       (until.getTime() - now.getTime()) / MS_PER_DAY,
     );
     const usedDays = await this.getFreezeDaysUsedThisYear(id, now);
-    const remainingDays = MAX_FREEZE_DAYS_PER_YEAR - usedDays;
+    const remainingDays = freezeDaysPerYearLimit - usedDays;
 
     if (requestedDays > remainingDays) {
       throw new BadRequestException(
@@ -274,11 +276,12 @@ export class MembershipsService {
   async getFreezeStatus(id: string) {
     await this.findOne(id);
     const now = new Date();
+    const { freezeDaysPerYearLimit } = await this.settings.getPolicy();
     const usedDays = await this.getFreezeDaysUsedThisYear(id, now);
     return {
-      maxDaysPerYear: MAX_FREEZE_DAYS_PER_YEAR,
+      maxDaysPerYear: freezeDaysPerYearLimit,
       usedDays,
-      remainingDays: MAX_FREEZE_DAYS_PER_YEAR - usedDays,
+      remainingDays: freezeDaysPerYearLimit - usedDays,
     };
   }
 
@@ -432,7 +435,27 @@ export class MembershipsService {
     return { message: 'Dependent removed' };
   }
 
-  cancel(id: string) {
+  /** A PENDING membership hasn't started yet, so no notice period applies
+   * to it — the policy only constrains cancelling an ACTIVE/FROZEN one,
+   * where a member is walking away from time they're already in. */
+  async cancel(id: string) {
+    const membership = await this.findOne(id);
+    const status = membership.status as MembershipStatus;
+
+    if (status === 'ACTIVE' || status === 'FROZEN') {
+      const { cancellationNoticeDays } = await this.settings.getPolicy();
+      if (cancellationNoticeDays > 0) {
+        const noticeDeadline = new Date(
+          membership.endDate.getTime() - cancellationNoticeDays * MS_PER_DAY,
+        );
+        if (new Date() > noticeDeadline) {
+          throw new BadRequestException(
+            `Cancelling this membership requires ${cancellationNoticeDays} day(s) notice before it ends on ${membership.endDate.toISOString().slice(0, 10)}`,
+          );
+        }
+      }
+    }
+
     return this.transition(id, 'cancel');
   }
 

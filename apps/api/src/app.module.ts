@@ -22,6 +22,8 @@ import { PtSessionsModule } from './pt-sessions/pt-sessions.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { RevenueModule } from './revenue/revenue.module.js';
 import { ReviewsModule } from './reviews/reviews.module.js';
+import { SettingsModule } from './settings/settings.module.js';
+import { StaffModule } from './staff/staff.module.js';
 import { TrainerAvailabilityModule } from './trainer-availability/trainer-availability.module.js';
 import { TrainerProfilesModule } from './trainer-profiles/trainer-profiles.module.js';
 import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
@@ -52,6 +54,8 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     RevenueModule,
     ReportsModule,
     ReviewsModule,
+    SettingsModule,
+    StaffModule,
   ],
   controllers: [AppController],
   providers: [AppService],

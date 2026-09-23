@@ -23,6 +23,10 @@ model User {
   phone                       String?
   qrCodeId                    String       @unique @default(cuid())
   emailVerified               Boolean      @default(false)
+  /// Deactivated staff accounts can't log in or refresh their session
+  /// (enforced in AuthService) — members are never deactivated this way,
+  /// only staff (ADMIN/TRAINER/FRONT_DESK), via the staff module.
+  isActive                    Boolean      @default(true)
   verificationToken           String?      @unique
   verificationTokenExpiresAt  DateTime?
   resetToken                  String?      @unique
@@ -53,6 +57,7 @@ model User {
   reviews                     Review[]
   submittedComplaints         Complaint[] @relation("ComplaintSubmitter")
   resolvedComplaints          Complaint[] @relation("ComplaintResolver")
+  gymSettingsUpdates          GymSettings[] @relation("GymSettingsUpdater")
 }
 
 model Session {
@@ -481,4 +486,32 @@ model Notification {
 
   @@index([userId])
   @@index([userId, readAt])
+}
+
+/// Gym-wide configuration (spec 3.12) — always exactly one row, at the
+/// fixed id "singleton". SettingsService upserts on that fixed id rather
+/// than requiring a seed migration, so the row lazily comes into
+/// existence with sane defaults the first time anyone reads or writes
+/// settings.
+model GymSettings {
+  id                     String    @id @default("singleton")
+  name                   String    @default("FitCore Gym")
+  timezone               String    @default("UTC")
+  /// Keyed by lowercase weekday name (monday..sunday); each value is
+  /// `{ open: "HH:mm", close: "HH:mm" }` or `{ open: null, close: null }`
+  /// for a closed day.
+  hours                  Json
+  /// Branch names/addresses — a flat list, not a full relational model,
+  /// since the spec frames multi-location as a maybe ("if
+  /// multi-location") rather than a firm requirement.
+  branches               String[]  @default([])
+  freezeDaysPerYearLimit Int       @default(30)
+  /// A member cancelling an ACTIVE/FROZEN membership must do so at least
+  /// this many days before its endDate; 0 (the default) means no notice
+  /// is required, preserving today's unconditional-cancel behavior until
+  /// an admin actually configures a policy.
+  cancellationNoticeDays Int       @default(0)
+  updatedAt              DateTime  @updatedAt
+  updatedById            String?
+  updatedBy              User?     @relation("GymSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
 }

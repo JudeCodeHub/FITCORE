@@ -1,6 +1,6 @@
 import { IsEmail, IsIn } from 'class-validator';
 
-const STAFF_ROLES = ['ADMIN', 'TRAINER', 'FRONT_DESK'] as const;
+export const STAFF_ROLES = ['ADMIN', 'TRAINER', 'FRONT_DESK'] as const;
 
 export class InviteStaffDto {
   @IsEmail()

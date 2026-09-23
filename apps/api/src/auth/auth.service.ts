@@ -113,6 +113,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('This account has been deactivated');
+    }
+
     return (await this.issueNewSession(user, userAgent)).response;
   }
 
@@ -212,6 +216,9 @@ export class AuthService {
     });
     if (!user) {
       throw new UnauthorizedException('User no longer exists');
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException('This account has been deactivated');
     }
 
     const result = await this.issueNewSession(user, userAgent);
