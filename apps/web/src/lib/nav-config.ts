@@ -17,6 +17,7 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { label: "Maintenance", href: "/admin/maintenance-tickets" },
     { label: "Staff", href: "/admin/staff" },
     { label: "Analytics", href: "/admin/analytics" },
+    { label: "Complaints", href: "/admin/complaints" },
     { label: "Settings", href: "/admin/settings" },
   ],
   TRAINER: [
@@ -26,12 +27,14 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { label: "PT Sessions", href: "/trainer/sessions" },
     { label: "My Profile", href: "/trainer/profile" },
     { label: "Maintenance", href: "/trainer/maintenance-tickets" },
+    { label: "Feedback", href: "/trainer/complaints" },
   ],
   FRONT_DESK: [
     { label: "Check-In", href: "/front-desk" },
     { label: "Member Lookup", href: "/front-desk/members" },
     { label: "Walk-In Sale", href: "/front-desk/sales" },
     { label: "Maintenance", href: "/front-desk/maintenance-tickets" },
+    { label: "Feedback", href: "/front-desk/complaints" },
   ],
   MEMBER: [
     { label: "Dashboard", href: "/member" },
@@ -43,6 +46,7 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { label: "Membership", href: "/member/membership" },
     { label: "Progress", href: "/member/progress" },
     { label: "Invoices", href: "/member/invoices" },
+    { label: "Feedback", href: "/member/complaints" },
   ],
 };
 

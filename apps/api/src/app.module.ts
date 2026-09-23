@@ -7,6 +7,7 @@ import { BodyMetricsModule } from './body-metrics/body-metrics.module.js';
 import { BookingsModule } from './bookings/bookings.module.js';
 import { CheckInsModule } from './check-ins/check-ins.module.js';
 import { ClassesModule } from './classes/classes.module.js';
+import { ComplaintsModule } from './complaints/complaints.module.js';
 import { EquipmentModule } from './equipment/equipment.module.js';
 import { ExercisesModule } from './exercises/exercises.module.js';
 import { MailerModule } from './mailer/mailer.module.js';
@@ -38,6 +39,7 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module.js';
     PtSessionsModule,
     TrainerAvailabilityModule,
     CheckInsModule,
+    ComplaintsModule,
     TrainerProfilesModule,
     ExercisesModule,
     WorkoutPlansModule,

@@ -51,6 +51,8 @@ model User {
   resolvedTickets             MaintenanceTicket[] @relation("MaintenanceTicketResolver")
   notifications               Notification[]
   reviews                     Review[]
+  submittedComplaints         Complaint[] @relation("ComplaintSubmitter")
+  resolvedComplaints          Complaint[] @relation("ComplaintResolver")
 }
 
 model Session {
@@ -416,6 +418,40 @@ model MaintenanceTicket {
   updatedAt    DateTime                @updatedAt
 
   @@index([equipmentId])
+  @@index([status])
+}
+
+enum ComplaintType {
+  COMPLAINT
+  SUGGESTION
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+/// The complaint/suggestion box (spec 3.11) — any authenticated user can
+/// submit one, an admin resolves it. Mirrors MaintenanceTicket's
+/// submit/resolve shape (OPEN/IN_PROGRESS/RESOLVED, submitter + resolver)
+/// since it's the same "someone reports something, admin closes it out"
+/// pattern, just not tied to a piece of Equipment.
+model Complaint {
+  id            String          @id @default(cuid())
+  submittedById String
+  submittedBy   User            @relation("ComplaintSubmitter", fields: [submittedById], references: [id], onDelete: Cascade)
+  type          ComplaintType
+  subject       String
+  message       String
+  status        ComplaintStatus @default(OPEN)
+  resolvedById  String?
+  resolvedBy    User?           @relation("ComplaintResolver", fields: [resolvedById], references: [id])
+  resolvedAt    DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([submittedById])
   @@index([status])
 }
 
