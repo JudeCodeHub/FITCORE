@@ -68,7 +68,7 @@ export function PricingSection() {
             <ul className={styles.features}>
               {tier.features.map((feature) => (
                 <li key={feature} className={styles.feature}>
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-landing-accent" />
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <span>{feature}</span>
                 </li>
               ))}

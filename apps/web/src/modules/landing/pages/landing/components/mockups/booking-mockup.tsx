@@ -11,11 +11,11 @@ export function BookingMockup() {
         </span>
       </div>
 
-      <div className="mt-4 flex items-center justify-between rounded-xl border border-dashed border-landing-accent/40 bg-landing-accent/5 px-3 py-2.5">
+      <div className="mt-4 flex items-center justify-between rounded-xl border border-dashed border-primary/40 bg-primary/5 px-3 py-2.5">
         <span className="text-xs text-muted-foreground">
           Waitlist #1 → auto-promoted
         </span>
-        <span className="text-xs font-semibold text-landing-accent">
+        <span className="text-xs font-semibold text-primary">
           Seat confirmed
         </span>
       </div>

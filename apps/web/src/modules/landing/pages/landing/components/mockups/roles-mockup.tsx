@@ -12,7 +12,7 @@ export function RolesMockup() {
             className={cn(
               "rounded-full px-3 py-1 text-xs font-medium",
               i === 0
-                ? "bg-landing-accent text-landing-accent-foreground"
+                ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground",
             )}
           >
