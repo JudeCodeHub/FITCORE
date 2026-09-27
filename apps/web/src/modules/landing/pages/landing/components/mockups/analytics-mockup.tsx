@@ -14,7 +14,7 @@ export function AnalyticsMockup() {
         <span className="text-xs font-medium text-muted-foreground">
           Revenue by Plan
         </span>
-        <span className="text-xs font-semibold text-landing-accent">
+        <span className="text-xs font-semibold text-primary">
           ↑ 12.4%
         </span>
       </div>
@@ -22,7 +22,7 @@ export function AnalyticsMockup() {
       <div className="h-20">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={PLAN_REVENUE} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-            <Bar dataKey="v" radius={[4, 4, 0, 0]} fill="var(--landing-accent)" />
+            <Bar dataKey="v" radius={[4, 4, 0, 0]} fill="var(--primary)" />
           </BarChart>
         </ResponsiveContainer>
       </div>

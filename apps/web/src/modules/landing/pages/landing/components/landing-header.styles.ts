@@ -13,10 +13,6 @@ export const landingHeaderStyles = {
   nav: "flex items-center gap-4",
   loginLink:
     "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-  // `!` forces these over Button's baked-in `bg-primary` default variant —
-  // without it, the cascade tie between two same-specificity utility
-  // classes is resolved by stylesheet rule order, not by where the class
-  // sits in the `class` attribute, and `bg-primary` was winning that tie.
   ctaButton:
-    "!bg-landing-accent !text-landing-accent-foreground hover:!bg-landing-accent/90",
+    "bg-primary text-primary-foreground hover:bg-primary/90",
 } as const;
