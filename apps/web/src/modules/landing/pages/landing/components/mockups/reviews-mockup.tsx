@@ -10,7 +10,7 @@ export function ReviewsMockup() {
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
-            className="h-4 w-4 fill-landing-accent text-landing-accent"
+            className="h-4 w-4 fill-primary text-primary"
           />
         ))}
         <span className="ml-2 text-sm font-semibold">4.9</span>
@@ -23,7 +23,7 @@ export function ReviewsMockup() {
             <Line
               type="monotone"
               dataKey="v"
-              stroke="var(--landing-accent)"
+              stroke="var(--primary)"
               strokeWidth={2.5}
               dot={false}
             />

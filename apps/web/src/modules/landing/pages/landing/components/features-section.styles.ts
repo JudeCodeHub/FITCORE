@@ -4,7 +4,7 @@ export const featuresStyles = {
   section: "mx-auto max-w-6xl px-6 py-20 sm:py-24",
   heading: "mx-auto max-w-2xl text-center",
   eyebrow:
-    "text-xs font-semibold tracking-wide text-landing-accent uppercase",
+    "text-xs font-semibold tracking-wide text-primary uppercase",
   title:
     "mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl",
   rows: "mt-20 flex flex-col gap-24",
@@ -17,7 +17,7 @@ export const featuresStyles = {
         : "translate-y-8 opacity-0",
     ),
   rowEyebrow:
-    "text-xs font-semibold tracking-wide text-landing-accent uppercase",
+    "text-xs font-semibold tracking-wide text-primary uppercase",
   rowTitle: "mt-2 font-heading text-2xl font-semibold tracking-tight",
   rowBody: "mt-3 max-w-md text-muted-foreground",
   visual: "flex justify-center",

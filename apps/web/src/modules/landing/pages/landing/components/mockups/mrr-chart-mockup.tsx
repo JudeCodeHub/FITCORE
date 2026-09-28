@@ -27,7 +27,7 @@ export function MrrChartMockup() {
             $24,850
           </p>
         </div>
-        <span className="rounded-full bg-landing-accent/15 px-2.5 py-1 text-xs font-semibold text-landing-accent">
+        <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
           +18%
         </span>
       </div>
@@ -37,14 +37,14 @@ export function MrrChartMockup() {
           <AreaChart data={TREND} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="mrrMockupFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--landing-accent)" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="var(--landing-accent)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <Area
               type="monotone"
               dataKey="v"
-              stroke="var(--landing-accent)"
+              stroke="var(--primary)"
               strokeWidth={2.5}
               fill="url(#mrrMockupFill)"
             />
