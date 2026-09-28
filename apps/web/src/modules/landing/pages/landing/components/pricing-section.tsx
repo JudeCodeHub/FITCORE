@@ -44,7 +44,7 @@ export function PricingSection() {
   const ctaLabel = isAuthed ? "Go to Dashboard" : "Get Started";
 
   return (
-    <section className={styles.section}>
+    <section id="pricing" className={styles.section}>
       <div className={styles.heading}>
         <span className={styles.eyebrow}>Pricing</span>
         <h2 className={styles.title}>Simple plans, real flexibility</h2>

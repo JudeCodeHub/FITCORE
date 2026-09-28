@@ -1,54 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Dumbbell } from "lucide-react";
 import { ROLE_HOME } from "@/lib/nav-config";
 import { useAuth } from "@/shared/auth/auth-context";
 import { landingHeaderStyles as styles } from "./landing-header.styles";
 
 export function LandingHeader() {
   const { user, status } = useAuth();
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    function onScroll() {
-      setIsScrolled(window.scrollY > 8);
-    }
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const isAuthed = status === "authenticated" && user;
 
   return (
-    <header className={styles.wrapper(isScrolled)}>
+    <header className={styles.wrapper}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.wordmark}>
-          FitCore
-        </Link>
+        <div className={styles.pillBar}>
+          {/* Left: Brand with Icon Placeholder */}
+          <Link href="/" className={styles.brand}>
+            {/* ======================================================== */}
+            {/* ICON PLACEHOLDER: Update or replace this icon as needed */}
+            {/* ======================================================== */}
+            <div className={styles.iconPlaceholder} aria-hidden="true">
+              <Dumbbell className="h-4 w-4 text-white" />
+            </div>
+            <span className={styles.wordmark}>FitCore</span>
+          </Link>
 
-        <nav className={styles.nav}>
-          {status === "authenticated" && user ? (
-            <Link
-              href={ROLE_HOME[user.role]}
-              className={buttonVariants({ size: "sm", className: styles.ctaButton })}
-            >
-              Dashboard
+          {/* Right: Navigation Links & Action Button */}
+          <nav className={styles.nav} aria-label="Main Navigation">
+            <Link href="#pricing" className={styles.navLink}>
+              Pricing
             </Link>
-          ) : (
-            <>
-              <Link href="/login" className={styles.loginLink}>
-                Login
+
+            {isAuthed ? (
+              <Link href={ROLE_HOME[user.role]} className={styles.ctaButton}>
+                Dashboard
               </Link>
-              <Link
-                href="/signup"
-                className={buttonVariants({ size: "sm", className: styles.ctaButton })}
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-        </nav>
+            ) : (
+              <>
+                <Link href="/login" className={styles.navLink}>
+                  Login
+                </Link>
+                <Link href="/signup" className={styles.ctaButton}>
+                  Get Started
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
       </div>
     </header>
   );
