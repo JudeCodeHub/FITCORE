@@ -13,40 +13,38 @@ export function LandingHeader() {
   return (
     <header className={styles.wrapper}>
       <div className={styles.inner}>
-        <div className={styles.pillBar}>
-          {/* Left: Brand with Icon Placeholder */}
-          <Link href="/" className={styles.brand}>
-            {/* ======================================================== */}
-            {/* ICON PLACEHOLDER: Update or replace this icon as needed */}
-            {/* ======================================================== */}
-            <div className={styles.iconPlaceholder} aria-hidden="true">
-              <Dumbbell className="h-4 w-4 text-white" />
-            </div>
-            <span className={styles.wordmark}>FitCore</span>
+        {/* Left: Brand with Icon Placeholder */}
+        <Link href="/" className={styles.brand}>
+          {/* ======================================================== */}
+          {/* ICON PLACEHOLDER: Update or replace this icon as needed */}
+          {/* ======================================================== */}
+          <div className={styles.iconPlaceholder} aria-hidden="true">
+            <Dumbbell className="h-5 w-5 text-primary" />
+          </div>
+          <span className={styles.wordmark}>FitCore</span>
+        </Link>
+
+        {/* Right: Navigation Links & Action Button */}
+        <nav className={styles.nav} aria-label="Main Navigation">
+          <Link href="#pricing" className={styles.navLink}>
+            Pricing
           </Link>
 
-          {/* Right: Navigation Links & Action Button */}
-          <nav className={styles.nav} aria-label="Main Navigation">
-            <Link href="#pricing" className={styles.navLink}>
-              Pricing
+          {isAuthed ? (
+            <Link href={ROLE_HOME[user.role]} className={styles.ctaButton}>
+              Dashboard
             </Link>
-
-            {isAuthed ? (
-              <Link href={ROLE_HOME[user.role]} className={styles.ctaButton}>
-                Dashboard
+          ) : (
+            <>
+              <Link href="/login" className={styles.navLink}>
+                Login
               </Link>
-            ) : (
-              <>
-                <Link href="/login" className={styles.navLink}>
-                  Login
-                </Link>
-                <Link href="/signup" className={styles.ctaButton}>
-                  Get Started
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
+              <Link href="/signup" className={styles.ctaButton}>
+                Get Started
+              </Link>
+            </>
+          )}
+        </nav>
       </div>
     </header>
   );
