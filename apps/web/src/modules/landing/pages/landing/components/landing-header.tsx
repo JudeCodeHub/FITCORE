@@ -26,6 +26,9 @@ export function LandingHeader() {
 
         {/* Right: Navigation Links & Action Button */}
         <nav className={styles.nav} aria-label="Main Navigation">
+          <Link href="#features" className={styles.navLink}>
+            Features
+          </Link>
           <Link href="#pricing" className={styles.navLink}>
             Pricing
           </Link>

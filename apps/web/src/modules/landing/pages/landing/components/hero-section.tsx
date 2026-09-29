@@ -1,15 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { ROLE_HOME } from "@/lib/nav-config";
-import { useAuth } from "@/shared/auth/auth-context";
 import { heroStyles as styles } from "./hero-section.styles";
 
 export function HeroSection() {
-  const { user, status } = useAuth();
-  const isAuthed = status === "authenticated" && user;
-
   return (
     <section className={styles.section}>
       {/* Background Hero Image - Right anchored and shifted slightly left */}
@@ -28,6 +22,13 @@ export function HeroSection() {
 
       {/* Dark gradient overlay for text readability on mobile and left side */}
       <div className={styles.overlay} aria-hidden="true" />
+
+      {/* Smooth bottom fade into next dark section */}
+      <div
+        className="pointer-events-none absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-black via-black/70 to-transparent z-10"
+        aria-hidden="true"
+      />
+
 
       {/* Hero Content */}
       <div className={styles.inner}>
@@ -48,18 +49,7 @@ export function HeroSection() {
           </p>
 
           <div
-            className={`${styles.actions} animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 [animation-fill-mode:backwards]`}
-          >
-            <Link
-              href={isAuthed ? ROLE_HOME[user.role] : "/signup"}
-              className={styles.cta}
-            >
-              {isAuthed ? "Go to Dashboard" : "Start free trial"}
-            </Link>
-          </div>
-
-          <div
-            className={`${styles.stats} animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500 [animation-fill-mode:backwards]`}
+            className={`${styles.stats} animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 [animation-fill-mode:backwards]`}
           >
             <div className={styles.statItem}>
               <span className={styles.statValue}>400k+</span>
