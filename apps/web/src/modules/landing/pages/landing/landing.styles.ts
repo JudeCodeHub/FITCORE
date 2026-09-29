@@ -1,3 +1,4 @@
 export const landingStyles = {
-  page: "min-h-screen bg-background",
+  page: "dark min-h-screen bg-black text-white selection:bg-primary selection:text-primary-foreground",
 } as const;
+

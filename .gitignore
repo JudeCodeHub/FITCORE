@@ -11,7 +11,8 @@ coverage/
 
 apps/api/src/generated/
 
-# Auto-generated agent-skill sync files (unused, from Prisma/shadcn tooling)
+# Auto-generated agent-skill sync files
+.agents/
 apps/*/.agents/
 apps/*/.claude/
 apps/*/.windsurf/

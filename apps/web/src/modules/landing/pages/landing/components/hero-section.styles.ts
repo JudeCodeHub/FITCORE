@@ -15,10 +15,8 @@ export const heroStyles = {
   headline:
     "font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]",
   subhead: "mt-5 text-sm md:text-base text-white/75 leading-relaxed max-w-lg",
-  actions: "mt-8 flex items-center gap-4",
-  cta: "inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]",
   stats:
-    "mt-12 sm:mt-14 flex flex-wrap items-start gap-8 sm:gap-14 pt-8 border-t border-white/10",
+    "mt-10 sm:mt-12 flex flex-wrap items-start gap-8 sm:gap-14 pt-8 border-t border-white/10",
   statItem: "flex flex-col",
   statValue:
     "font-heading text-2xl  sm:text-3xl font-bold text-white tracking-tight",

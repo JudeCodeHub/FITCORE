@@ -1,6 +1,6 @@
 "use client";
 
-import { CtaSection } from "./components/cta-section";
+import { EcosystemSection } from "./components/ecosystem-section";
 import { FeaturesSection } from "./components/features-section";
 import { HeroSection } from "./components/hero-section";
 import { LandingFooter } from "./components/landing-footer";
@@ -15,10 +15,11 @@ export function LandingPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
+        <EcosystemSection />
         <PricingSection />
-        <CtaSection />
       </main>
       <LandingFooter />
     </div>
   );
 }
+
