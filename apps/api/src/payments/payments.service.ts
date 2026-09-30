@@ -5,9 +5,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import Stripe from 'stripe';
-import { PaymentMethod, PaymentStatus, PlanDuration } from '../generated/prisma/index.js';
+import { PaymentMethod, PaymentStatus, PlanDuration } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+
+export interface CreateCheckoutSessionResult {
+  sessionId: string;
+  url: string | null;
+}
+
+export interface CheckoutSessionResult {
+  payment: any;
+  stripeStatus?: string | null;
+  paymentStatus?: string | null;
+  customerEmail?: string | null;
+}
 
 @Injectable()
 export class PaymentsService {
@@ -33,7 +45,10 @@ export class PaymentsService {
     return this.stripe;
   }
 
-  async createCheckoutSession(userId: string, dto: CreateCheckoutSessionDto) {
+  async createCheckoutSession(
+    userId: string,
+    dto: CreateCheckoutSessionDto,
+  ): Promise<CreateCheckoutSessionResult> {
     const stripe = this.getStripeClient();
 
     // 1. Verify user exists
@@ -135,7 +150,10 @@ export class PaymentsService {
     };
   }
 
-  async getCheckoutSession(userId: string, sessionId: string) {
+  async getCheckoutSession(
+    userId: string,
+    sessionId: string,
+  ): Promise<CheckoutSessionResult> {
     const stripe = this.getStripeClient();
 
     const payment = await this.prisma.payment.findFirst({
