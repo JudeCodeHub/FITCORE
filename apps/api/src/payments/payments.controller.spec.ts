@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { describe, expect, it, vi } from 'vitest';
+import type { RawBodyRequest } from '@nestjs/common';
+import type { Request } from 'express';
 import { PaymentsController } from './payments.controller.js';
 import { PaymentsService } from './payments.service.js';
 
@@ -11,6 +13,7 @@ describe('PaymentsController', () => {
   const mockPaymentsService = {
     createCheckoutSession: vi.fn(),
     getCheckoutSession: vi.fn(),
+    handleWebhook: vi.fn(),
   };
 
   const mockJwtService = {
@@ -71,6 +74,21 @@ describe('PaymentsController', () => {
 
       expect(service.getCheckoutSession).toHaveBeenCalledWith('user-1', 'cs_test_123');
       expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('handleWebhook', () => {
+    it('should delegate rawBody and signature to paymentsService.handleWebhook', async () => {
+      const fakeBuffer = Buffer.from('{"id":"evt_123"}');
+      const req = { rawBody: fakeBuffer } as RawBodyRequest<Request>;
+      const sig = 't=123,v1=signature';
+
+      mockPaymentsService.handleWebhook.mockResolvedValue({ received: true });
+
+      const result = await controller.handleWebhook(req, sig);
+
+      expect(service.handleWebhook).toHaveBeenCalledWith(fakeBuffer, sig);
+      expect(result).toEqual({ received: true });
     });
   });
 });

@@ -180,4 +180,39 @@ export class PaymentsService {
       return { payment };
     }
   }
+
+  verifyWebhookSignature(
+    rawBody: Buffer | string | undefined,
+    signature: string | undefined,
+  ): Stripe.Event {
+    if (!rawBody) {
+      throw new BadRequestException('Raw request body is required for Stripe signature verification');
+    }
+    if (!signature) {
+      throw new BadRequestException('Missing stripe-signature header');
+    }
+
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new InternalServerErrorException(
+        'STRIPE_WEBHOOK_SECRET is not configured in the environment',
+      );
+    }
+
+    const stripe = this.getStripeClient();
+    try {
+      return stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    } catch (err: any) {
+      throw new BadRequestException(`Stripe webhook signature verification failed: ${err.message}`);
+    }
+  }
+
+  async handleWebhook(
+    rawBody: Buffer | string | undefined,
+    signature: string | undefined,
+  ): Promise<{ received: boolean }> {
+    this.verifyWebhookSignature(rawBody, signature);
+    return { received: true };
+  }
 }
+
