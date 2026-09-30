@@ -210,9 +210,32 @@ export class PaymentsService {
   async handleWebhook(
     rawBody: Buffer | string | undefined,
     signature: string | undefined,
-  ): Promise<{ received: boolean }> {
-    this.verifyWebhookSignature(rawBody, signature);
-    return { received: true };
+  ): Promise<{ received: boolean; duplicate?: boolean }> {
+    const event = this.verifyWebhookSignature(rawBody, signature);
+
+    // Webhook idempotency: check if event has already been processed
+    const existing = await this.prisma.processedWebhookEvent.findUnique({
+      where: { eventId: event.id },
+    });
+    if (existing) {
+      return { received: true, duplicate: true };
+    }
+
+    try {
+      await this.prisma.processedWebhookEvent.create({
+        data: {
+          eventId: event.id,
+          eventType: event.type,
+        },
+      });
+    } catch (err: any) {
+      if (err?.code === 'P2002') {
+        return { received: true, duplicate: true };
+      }
+      throw err;
+    }
+
+    return { received: true, duplicate: false };
   }
 }
 
