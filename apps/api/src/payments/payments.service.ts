@@ -5,7 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import Stripe from 'stripe';
-import { PaymentMethod, PaymentStatus, PlanDuration } from '../generated/prisma/enums.js';
+import {
+  MembershipStatus,
+  PaymentMethod,
+  PaymentStatus,
+  PlanDuration,
+} from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
 
@@ -235,7 +240,348 @@ export class PaymentsService {
       throw err;
     }
 
+    // Process recurring billing lifecycle events
+    await this.processWebhookEvent(event);
+
     return { received: true, duplicate: false };
+  }
+
+  async processWebhookEvent(event: Stripe.Event): Promise<void> {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await this.handleCheckoutSessionCompleted(
+          event.data.object as Stripe.Checkout.Session,
+        );
+        break;
+      case 'invoice.paid':
+      case 'invoice.payment_succeeded':
+        await this.handleInvoicePaid(event.data.object as Stripe.Invoice);
+        break;
+      case 'invoice.payment_failed':
+        await this.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+        break;
+      case 'customer.subscription.updated':
+        await this.handleSubscriptionUpdated(
+          event.data.object as Stripe.Subscription,
+        );
+        break;
+      case 'customer.subscription.deleted':
+        await this.handleSubscriptionDeleted(
+          event.data.object as Stripe.Subscription,
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  private calculateEndDate(startDate: Date, duration?: PlanDuration): Date {
+    const end = new Date(startDate);
+    if (duration === PlanDuration.ANNUAL) {
+      end.setFullYear(end.getFullYear() + 1);
+    } else if (duration === PlanDuration.QUARTERLY) {
+      end.setMonth(end.getMonth() + 3);
+    } else {
+      end.setMonth(end.getMonth() + 1);
+    }
+    return end;
+  }
+
+  async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+    const userId = session.metadata?.userId || (session.client_reference_id as string);
+    const planId = session.metadata?.planId;
+
+    if (!userId || !planId) return;
+
+    const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan) return;
+
+    const subscriptionId =
+      typeof session.subscription === 'string'
+        ? session.subscription
+        : session.subscription?.id;
+
+    const paymentIntentId =
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id;
+
+    const now = new Date();
+    const endDate = this.calculateEndDate(now, plan.duration);
+
+    let membership = await this.prisma.membership.findFirst({
+      where: {
+        userId,
+        status: { in: [MembershipStatus.PENDING, MembershipStatus.ACTIVE] },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (membership) {
+      membership = await this.prisma.membership.update({
+        where: { id: membership.id },
+        data: {
+          status: MembershipStatus.ACTIVE,
+          planId: plan.id,
+          stripeSubscriptionId: subscriptionId ?? membership.stripeSubscriptionId,
+          startDate: now,
+          endDate,
+        },
+      });
+    } else {
+      membership = await this.prisma.membership.create({
+        data: {
+          userId,
+          planId: plan.id,
+          status: MembershipStatus.ACTIVE,
+          stripeSubscriptionId: subscriptionId,
+          startDate: now,
+          endDate,
+        },
+      });
+    }
+
+    const payment = await this.prisma.payment.findFirst({
+      where: { stripeCheckoutSessionId: session.id },
+    });
+
+    if (payment) {
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.SUCCEEDED,
+          membershipId: membership.id,
+          stripePaymentIntentId: paymentIntentId ?? payment.stripePaymentIntentId,
+          stripeSubscriptionId: subscriptionId ?? payment.stripeSubscriptionId,
+        },
+      });
+    } else {
+      await this.prisma.payment.create({
+        data: {
+          userId,
+          membershipId: membership.id,
+          amount: plan.price,
+          currency: session.currency || 'usd',
+          status: PaymentStatus.SUCCEEDED,
+          method: PaymentMethod.STRIPE,
+          stripeCheckoutSessionId: session.id,
+          stripePaymentIntentId: paymentIntentId,
+          stripeSubscriptionId: subscriptionId,
+        },
+      });
+    }
+  }
+
+  async handleInvoicePaid(invoice: Stripe.Invoice) {
+    const rawInvoice = invoice as any;
+    const subscriptionId =
+      (typeof rawInvoice.subscription === 'string'
+        ? rawInvoice.subscription
+        : rawInvoice.subscription?.id) ||
+      (typeof rawInvoice.parent?.subscription_details?.subscription === 'string'
+        ? rawInvoice.parent.subscription_details.subscription
+        : rawInvoice.parent?.subscription_details?.subscription?.id);
+
+    if (!subscriptionId) return;
+
+    let membership = await this.prisma.membership.findUnique({
+      where: { stripeSubscriptionId: subscriptionId },
+      include: { plan: true },
+    });
+
+    if (!membership && invoice.customer) {
+      const customerId =
+        typeof invoice.customer === 'string'
+          ? invoice.customer
+          : invoice.customer.id;
+      const user = await this.prisma.user.findFirst({
+        where: { stripeCustomerId: customerId },
+      });
+      if (user) {
+        const candidate = await this.prisma.membership.findFirst({
+          where: { userId: user.id },
+          include: { plan: true },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (candidate) {
+          membership = await this.prisma.membership.update({
+            where: { id: candidate.id },
+            data: { stripeSubscriptionId: subscriptionId },
+            include: { plan: true },
+          });
+        }
+      }
+    }
+
+    if (!membership) return;
+
+    let newEndDate = membership.endDate;
+    const lineItemPeriodEnd = invoice.lines?.data?.[0]?.period?.end;
+    if (lineItemPeriodEnd) {
+      newEndDate = new Date(lineItemPeriodEnd * 1000);
+    } else if (membership.plan) {
+      const baseDate = membership.endDate > new Date() ? membership.endDate : new Date();
+      newEndDate = this.calculateEndDate(baseDate, membership.plan.duration);
+    }
+
+    await this.prisma.membership.update({
+      where: { id: membership.id },
+      data: {
+        status: MembershipStatus.ACTIVE,
+        endDate: newEndDate,
+      },
+    });
+
+    const paymentIntentId =
+      typeof rawInvoice.payment_intent === 'string'
+        ? rawInvoice.payment_intent
+        : rawInvoice.payment_intent?.id;
+
+    const amountPaidDecimal = ((invoice.amount_paid ?? 0) / 100).toFixed(2);
+
+    const existingPayment = await this.prisma.payment.findFirst({
+      where: {
+        OR: [
+          { stripeInvoiceId: invoice.id },
+          ...(paymentIntentId ? [{ stripePaymentIntentId: paymentIntentId }] : []),
+        ],
+      },
+    });
+
+    if (existingPayment) {
+      await this.prisma.payment.update({
+        where: { id: existingPayment.id },
+        data: {
+          status: PaymentStatus.SUCCEEDED,
+          stripeInvoiceId: invoice.id,
+          receiptUrl: invoice.hosted_invoice_url ?? existingPayment.receiptUrl,
+          membershipId: membership.id,
+        },
+      });
+    } else {
+      await this.prisma.payment.create({
+        data: {
+          userId: membership.userId,
+          membershipId: membership.id,
+          amount: amountPaidDecimal,
+          currency: invoice.currency || 'usd',
+          status: PaymentStatus.SUCCEEDED,
+          method: PaymentMethod.STRIPE,
+          stripeInvoiceId: invoice.id,
+          stripePaymentIntentId: paymentIntentId,
+          stripeSubscriptionId: subscriptionId,
+          receiptUrl: invoice.hosted_invoice_url,
+        },
+      });
+    }
+  }
+
+  async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+    const rawInvoice = invoice as any;
+    const subscriptionId =
+      (typeof rawInvoice.subscription === 'string'
+        ? rawInvoice.subscription
+        : rawInvoice.subscription?.id) ||
+      (typeof rawInvoice.parent?.subscription_details?.subscription === 'string'
+        ? rawInvoice.parent.subscription_details.subscription
+        : rawInvoice.parent?.subscription_details?.subscription?.id);
+
+    let membership: any = null;
+    if (subscriptionId) {
+      membership = await this.prisma.membership.findUnique({
+        where: { stripeSubscriptionId: subscriptionId },
+      });
+    }
+
+    let userId = membership?.userId;
+    if (!userId && invoice.customer) {
+      const customerId =
+        typeof invoice.customer === 'string'
+          ? invoice.customer
+          : invoice.customer.id;
+      const user = await this.prisma.user.findFirst({
+        where: { stripeCustomerId: customerId },
+      });
+      userId = user?.id;
+    }
+
+    if (!userId) return;
+
+    const paymentIntentId =
+      typeof rawInvoice.payment_intent === 'string'
+        ? rawInvoice.payment_intent
+        : rawInvoice.payment_intent?.id;
+
+    const amountDueDecimal = (
+      ((invoice.amount_due ?? invoice.amount_remaining) || 0) / 100
+    ).toFixed(2);
+    const failureReason =
+      (invoice as any).last_finalization_error?.message ||
+      'Recurring invoice payment failed';
+
+    await this.prisma.payment.create({
+      data: {
+        userId,
+        membershipId: membership?.id,
+        amount: amountDueDecimal,
+        currency: invoice.currency || 'usd',
+        status: PaymentStatus.FAILED,
+        method: PaymentMethod.STRIPE,
+        stripeInvoiceId: invoice.id,
+        stripePaymentIntentId: paymentIntentId,
+        stripeSubscriptionId: subscriptionId,
+        failureReason,
+      },
+    });
+  }
+
+  async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+    const membership = await this.prisma.membership.findUnique({
+      where: { stripeSubscriptionId: subscription.id },
+    });
+
+    if (!membership) return;
+
+    const dataToUpdate: any = {};
+
+    if (subscription.status === 'active') {
+      if (
+        membership.status !== MembershipStatus.ACTIVE &&
+        membership.status !== MembershipStatus.FROZEN
+      ) {
+        dataToUpdate.status = MembershipStatus.ACTIVE;
+      }
+      if ((subscription as any).current_period_end) {
+        dataToUpdate.endDate = new Date(
+          (subscription as any).current_period_end * 1000,
+        );
+      }
+    } else if (
+      subscription.status === 'canceled' ||
+      subscription.status === 'unpaid'
+    ) {
+      dataToUpdate.status = MembershipStatus.CANCELLED;
+    }
+
+    if (Object.keys(dataToUpdate).length > 0) {
+      await this.prisma.membership.update({
+        where: { id: membership.id },
+        data: dataToUpdate,
+      });
+    }
+  }
+
+  async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+    const membership = await this.prisma.membership.findUnique({
+      where: { stripeSubscriptionId: subscription.id },
+    });
+
+    if (!membership) return;
+
+    await this.prisma.membership.update({
+      where: { id: membership.id },
+      data: { status: MembershipStatus.CANCELLED },
+    });
   }
 }
 
