@@ -11,6 +11,8 @@ import {
   PaymentStatus,
   PlanDuration,
 } from '../generated/prisma/enums.js';
+import { MailerService } from '../mailer/mailer.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
 
@@ -26,11 +28,22 @@ export interface CheckoutSessionResult {
   customerEmail?: string | null;
 }
 
+export interface RetryInvoiceResult {
+  invoiceId: string;
+  status: string | null;
+  paid: boolean;
+  hostedInvoiceUrl?: string | null;
+}
+
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe | null = null;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailer: MailerService,
+    private readonly notifications: NotificationsService,
+  ) {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     if (stripeKey) {
       this.stripe = new Stripe(stripeKey);
@@ -490,16 +503,18 @@ export class PaymentsService {
     if (subscriptionId) {
       membership = await this.prisma.membership.findUnique({
         where: { stripeSubscriptionId: subscriptionId },
+        include: { plan: true, user: true },
       });
     }
 
-    let userId = membership?.userId;
+    let user = membership?.user;
+    let userId = user?.id;
     if (!userId && invoice.customer) {
       const customerId =
         typeof invoice.customer === 'string'
           ? invoice.customer
           : invoice.customer.id;
-      const user = await this.prisma.user.findFirst({
+      user = await this.prisma.user.findFirst({
         where: { stripeCustomerId: customerId },
       });
       userId = user?.id;
@@ -519,6 +534,14 @@ export class PaymentsService {
       (invoice as any).last_finalization_error?.message ||
       'Recurring invoice payment failed';
 
+    const attemptCount = rawInvoice.attempt_count ?? 1;
+    const nextPaymentAttempt = rawInvoice.next_payment_attempt;
+    const nextRetryDate = nextPaymentAttempt
+      ? new Date(nextPaymentAttempt * 1000)
+      : null;
+    const invoiceUrl = rawInvoice.hosted_invoice_url;
+
+    // 1. Record failed payment entry
     await this.prisma.payment.create({
       data: {
         userId,
@@ -533,6 +556,89 @@ export class PaymentsService {
         failureReason,
       },
     });
+
+    const userEmail = user?.email || invoice.customer_email;
+
+    // 2. Dunning logic: Check if retries remain or if retries are exhausted
+    if (nextRetryDate) {
+      if (userEmail) {
+        this.mailer.sendPaymentFailedDunningEmail(
+          userEmail,
+          amountDueDecimal,
+          attemptCount,
+          nextRetryDate,
+          invoiceUrl,
+        );
+      }
+
+      await this.notifications.create({
+        userId,
+        type: 'PAYMENT_ALERT',
+        title: 'Payment Failed - Action Required',
+        message: `Your payment of $${amountDueDecimal} failed (Attempt #${attemptCount}). Next retry scheduled for ${nextRetryDate.toLocaleDateString()}. Please update your payment method.`,
+      });
+    } else {
+      // Retries exhausted: expire membership and notify
+      if (membership) {
+        await this.prisma.membership.update({
+          where: { id: membership.id },
+          data: { status: MembershipStatus.EXPIRED },
+        });
+      }
+
+      if (userEmail) {
+        this.mailer.sendMembershipSuspendedEmail(
+          userEmail,
+          membership?.plan?.name,
+        );
+      }
+
+      await this.notifications.create({
+        userId,
+        type: 'PAYMENT_ALERT',
+        title: 'Membership Suspended - Payment Failed',
+        message: `All payment retry attempts for $${amountDueDecimal} have failed. Your membership has been suspended. Please update your card to restore access.`,
+      });
+    }
+  }
+
+  async retryInvoicePayment(
+    userId: string,
+    invoiceId: string,
+  ): Promise<RetryInvoiceResult> {
+    const stripe = this.getStripeClient();
+
+    const payment = await this.prisma.payment.findFirst({
+      where: {
+        stripeInvoiceId: invoiceId,
+        userId,
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment invoice not found for user');
+    }
+
+    try {
+      const invoice = await stripe.invoices.pay(invoiceId);
+      if (invoice.status === 'paid') {
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: PaymentStatus.SUCCEEDED,
+            failureReason: null,
+          },
+        });
+      }
+      return {
+        invoiceId: invoice.id,
+        status: invoice.status,
+        paid: invoice.status === 'paid',
+        hostedInvoiceUrl: invoice.hosted_invoice_url,
+      };
+    } catch (err: any) {
+      throw new BadRequestException(`Failed to retry payment: ${err.message}`);
+    }
   }
 
   async handleSubscriptionUpdated(subscription: Stripe.Subscription) {

@@ -1,11 +1,15 @@
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PaymentsService } from './payments.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { MailerService } from '../mailer/mailer.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 
-describe('PaymentsService - Webhook verification & idempotency', () => {
+describe('PaymentsService - Webhook verification, idempotency & retry logic', () => {
   let service: PaymentsService;
   let mockPrisma: any;
+  let mockMailer: any;
+  let mockNotifications: any;
 
   beforeEach(() => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_12345';
@@ -34,7 +38,21 @@ describe('PaymentsService - Webhook verification & idempotency', () => {
         findFirst: vi.fn(),
       },
     };
-    service = new PaymentsService(mockPrisma as unknown as PrismaService);
+
+    mockMailer = {
+      sendPaymentFailedDunningEmail: vi.fn(),
+      sendMembershipSuspendedEmail: vi.fn(),
+    };
+
+    mockNotifications = {
+      create: vi.fn(),
+    };
+
+    service = new PaymentsService(
+      mockPrisma as unknown as PrismaService,
+      mockMailer as unknown as MailerService,
+      mockNotifications as unknown as NotificationsService,
+    );
   });
 
   it('throws BadRequestException if rawBody is missing', () => {
@@ -116,7 +134,7 @@ describe('PaymentsService - Webhook verification & idempotency', () => {
     expect(result).toEqual({ received: true, duplicate: true });
   });
 
-  describe('Recurring billing lifecycle handlers', () => {
+  describe('Recurring billing lifecycle & dunning handlers', () => {
     it('handles checkout.session.completed by creating or activating membership', async () => {
       const session = {
         id: 'cs_123',
@@ -179,18 +197,23 @@ describe('PaymentsService - Webhook verification & idempotency', () => {
       );
     });
 
-    it('handles invoice.payment_failed by creating FAILED payment record', async () => {
+    it('handles invoice.payment_failed with next retry scheduled by sending dunning email and notification', async () => {
       const invoice = {
         id: 'in_fail_123',
         subscription: 'sub_123',
         amount_due: 4900,
         currency: 'usd',
         payment_intent: 'pi_fail',
+        attempt_count: 1,
+        next_payment_attempt: 1800000000,
+        hosted_invoice_url: 'https://stripe.com/invoice/in_fail_123',
         last_finalization_error: { message: 'Card declined' },
       };
       mockPrisma.membership.findUnique.mockResolvedValue({
         id: 'mem-1',
         userId: 'user-1',
+        user: { id: 'user-1', email: 'member@test.com' },
+        plan: { name: 'Premium' },
       });
       mockPrisma.payment.create.mockResolvedValue({ id: 'pay-fail' });
 
@@ -202,6 +225,57 @@ describe('PaymentsService - Webhook verification & idempotency', () => {
             status: 'FAILED',
             failureReason: 'Card declined',
           }),
+        }),
+      );
+      expect(mockMailer.sendPaymentFailedDunningEmail).toHaveBeenCalledWith(
+        'member@test.com',
+        '49.00',
+        1,
+        new Date(1800000000 * 1000),
+        'https://stripe.com/invoice/in_fail_123',
+      );
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: 'PAYMENT_ALERT',
+        }),
+      );
+    });
+
+    it('handles invoice.payment_failed when retries exhausted by setting membership EXPIRED and sending suspension email', async () => {
+      const invoice = {
+        id: 'in_fail_exhausted',
+        subscription: 'sub_123',
+        amount_due: 4900,
+        currency: 'usd',
+        payment_intent: 'pi_fail',
+        attempt_count: 3,
+        next_payment_attempt: null,
+        last_finalization_error: { message: 'Insufficient funds' },
+      };
+      mockPrisma.membership.findUnique.mockResolvedValue({
+        id: 'mem-1',
+        userId: 'user-1',
+        user: { id: 'user-1', email: 'member@test.com' },
+        plan: { name: 'Pro' },
+      });
+      mockPrisma.payment.create.mockResolvedValue({ id: 'pay-fail' });
+
+      await service.handleInvoicePaymentFailed(invoice as any);
+
+      expect(mockPrisma.membership.update).toHaveBeenCalledWith({
+        where: { id: 'mem-1' },
+        data: { status: 'EXPIRED' },
+      });
+      expect(mockMailer.sendMembershipSuspendedEmail).toHaveBeenCalledWith(
+        'member@test.com',
+        'Pro',
+      );
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: 'PAYMENT_ALERT',
+          title: expect.stringContaining('Membership Suspended'),
         }),
       );
     });
@@ -219,6 +293,14 @@ describe('PaymentsService - Webhook verification & idempotency', () => {
         where: { id: 'mem-1' },
         data: { status: 'CANCELLED' },
       });
+    });
+
+    it('retryInvoicePayment throws NotFoundException when invoice payment not found', async () => {
+      mockPrisma.payment.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.retryInvoicePayment('user-1', 'in_unknown'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

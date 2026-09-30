@@ -91,4 +91,23 @@ describe('PaymentsController', () => {
       expect(result).toEqual({ received: true });
     });
   });
+
+  describe('retryInvoicePayment', () => {
+    it('should delegate to paymentsService.retryInvoicePayment', async () => {
+      const user = { sub: 'user-1', email: 'user@test.com', role: 'MEMBER' };
+      const expectedResult = {
+        invoiceId: 'in_123',
+        status: 'paid',
+        paid: true,
+        hostedInvoiceUrl: 'https://invoice.stripe.com/123',
+      };
+
+      mockPaymentsService.retryInvoicePayment = vi.fn().mockResolvedValue(expectedResult);
+
+      const result = await controller.retryInvoicePayment(user, 'in_123');
+
+      expect(mockPaymentsService.retryInvoicePayment).toHaveBeenCalledWith('user-1', 'in_123');
+      expect(result).toEqual(expectedResult);
+    });
+  });
 });

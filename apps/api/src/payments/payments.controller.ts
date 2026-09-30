@@ -18,6 +18,7 @@ import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
 import {
   type CheckoutSessionResult,
   type CreateCheckoutSessionResult,
+  type RetryInvoiceResult,
   PaymentsService,
 } from './payments.service.js';
 
@@ -50,5 +51,14 @@ export class PaymentsController {
     @Headers('stripe-signature') signature?: string,
   ): Promise<{ received: boolean; duplicate?: boolean }> {
     return this.paymentsService.handleWebhook(req.rawBody, signature);
+  }
+
+  @Post('invoices/:invoiceId/retry')
+  @UseGuards(JwtAuthGuard)
+  retryInvoicePayment(
+    @CurrentUser() user: RequestUser,
+    @Param('invoiceId') invoiceId: string,
+  ): Promise<RetryInvoiceResult> {
+    return this.paymentsService.retryInvoicePayment(user.sub, invoiceId);
   }
 }

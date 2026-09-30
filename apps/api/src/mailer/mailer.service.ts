@@ -54,4 +54,25 @@ export class MailerService {
       `[stub email] Membership renewal reminder for ${to}: ${planName} expires ${endDate.toISOString()}`,
     );
   }
+
+  sendPaymentFailedDunningEmail(
+    to: string,
+    amount: string,
+    attemptCount: number,
+    nextRetryDate: Date | null,
+    invoiceUrl?: string | null,
+  ) {
+    const nextRetryText = nextRetryDate
+      ? `Next automatic retry scheduled for ${nextRetryDate.toLocaleDateString()}.`
+      : 'All automatic retries have been exhausted.';
+    this.logger.log(
+      `[stub email] Payment failed alert for ${to}: Attempt #${attemptCount} for $${amount} failed. ${nextRetryText} Please update your payment method: ${invoiceUrl || 'http://localhost:3000/member'}`,
+    );
+  }
+
+  sendMembershipSuspendedEmail(to: string, planName?: string) {
+    this.logger.log(
+      `[stub email] Membership suspended for ${to}: Payment retries failed. Your ${planName || 'FitCore'} membership has been suspended until payment is resolved.`,
+    );
+  }
 }
