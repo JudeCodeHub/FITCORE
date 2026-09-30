@@ -22,6 +22,7 @@ model User {
   passwordHash                String
   phone                       String?
   qrCodeId                    String       @unique @default(cuid())
+  stripeCustomerId            String?      @unique
   emailVerified               Boolean      @default(false)
   /// Deactivated staff accounts can't log in or refresh their session
   /// (enforced in AuthService) — members are never deactivated this way,
@@ -35,6 +36,7 @@ model User {
   updatedAt                   DateTime     @updatedAt
   sessions                    Session[]
   memberships                 Membership[]
+  payments                    Payment[]
   dependentOf                 MembershipDependent?
   taughtClasses               Class[]
   bookings                    Booking[]
@@ -122,13 +124,15 @@ model Membership {
   planId      String
   plan        Plan                 @relation(fields: [planId], references: [id])
   status      MembershipStatus     @default(PENDING)
-  startDate   DateTime
-  endDate     DateTime
-  frozenUntil DateTime?
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  freezes     MembershipFreeze[]
-  dependents  MembershipDependent[]
+  startDate            DateTime
+  endDate              DateTime
+  frozenUntil          DateTime?
+  stripeSubscriptionId String?               @unique
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  freezes              MembershipFreeze[]
+  dependents           MembershipDependent[]
+  payments             Payment[]
 
   @@index([userId])
   @@index([planId])
@@ -515,3 +519,55 @@ model GymSettings {
   updatedById            String?
   updatedBy              User?     @relation("GymSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
 }
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE
+  CASH
+  CARD_PRESENT
+}
+
+model Payment {
+  id                      String         @id @default(cuid())
+  userId                  String
+  user                    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membershipId            String?
+  membership              Membership?    @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  amount                  Decimal        @db.Decimal(10, 2)
+  currency                String         @default("usd")
+  status                  PaymentStatus  @default(PENDING)
+  method                  PaymentMethod  @default(STRIPE)
+  stripePaymentIntentId   String?        @unique
+  stripeCheckoutSessionId String?        @unique
+  stripeInvoiceId         String?
+  stripeSubscriptionId    String?
+  receiptUrl              String?
+  invoiceNumber           String?        @unique
+  refundAmount            Decimal?       @db.Decimal(10, 2)
+  refundedAt              DateTime?
+  failureReason           String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([membershipId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ProcessedWebhookEvent {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  eventType String
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+}
+
