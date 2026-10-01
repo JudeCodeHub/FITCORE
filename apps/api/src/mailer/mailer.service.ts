@@ -81,4 +81,18 @@ export class MailerService {
       `[stub email] Cash payment receipt for ${to}: $${amount} received at front desk. Invoice #${invoiceNumber}.`,
     );
   }
+
+  sendRefundConfirmationEmail(
+    to: string,
+    amount: string,
+    invoiceNumber: string,
+    isFullRefund: boolean,
+    reason?: string,
+  ) {
+    const typeStr = isFullRefund ? 'Full refund' : 'Partial refund';
+    const reasonText = reason ? ` Reason: ${reason}.` : '';
+    this.logger.log(
+      `[stub email] ${typeStr} processed for ${to}: $${amount} has been refunded for Invoice #${invoiceNumber}.${reasonText}`,
+    );
+  }
 }

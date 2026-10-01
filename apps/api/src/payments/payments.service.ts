@@ -16,8 +16,38 @@ import { MailerService } from '../mailer/mailer.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+import { PaymentHistoryQueryDto } from './dto/payment-history-query.dto.js';
 import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
+import { RefundPaymentDto } from './dto/refund-payment.dto.js';
 import { buildPaymentInvoicePdf } from './pdf-invoice.util.js';
+
+export interface RefundPaymentResult {
+  success: boolean;
+  payment: any;
+  refundAmount: number;
+  totalRefunded: number;
+  isFullRefund: boolean;
+  stripeRefundId?: string | null;
+}
+
+export interface PaymentHistorySummary {
+  totalAmount: number;
+  succeededCount: number;
+  failedCount: number;
+  refundedCount: number;
+  pendingCount: number;
+}
+
+export interface PaymentHistoryResult {
+  data: any[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  summary: PaymentHistorySummary;
+}
 
 export interface CreateCheckoutSessionResult {
   sessionId: string;
@@ -291,6 +321,9 @@ export class PaymentsService {
         await this.handleSubscriptionDeleted(
           event.data.object as Stripe.Subscription,
         );
+        break;
+      case 'charge.refunded':
+        await this.handleChargeRefunded(event.data.object as Stripe.Charge);
         break;
       default:
         break;
@@ -885,6 +918,299 @@ export class PaymentsService {
     return {
       buffer,
       filename: `${invoiceNumber}.pdf`,
+    };
+  }
+
+  async getPaymentHistory(
+    requestingUserId: string,
+    userRole?: string,
+    query: PaymentHistoryQueryDto = {},
+  ): Promise<PaymentHistoryResult> {
+    const where: any = {};
+
+    // Role-based access: Members can only view their own payment history
+    if (userRole !== 'ADMIN' && userRole !== 'FRONT_DESK') {
+      where.userId = requestingUserId;
+    } else if (query.userId) {
+      where.userId = query.userId;
+    }
+
+    if (query.status) {
+      where.status = query.status;
+    }
+
+    if (query.method) {
+      where.method = query.method;
+    }
+
+    if (query.startDate || query.endDate) {
+      where.createdAt = {};
+      if (query.startDate) {
+        where.createdAt.gte = new Date(query.startDate);
+      }
+      if (query.endDate) {
+        const end = new Date(query.endDate);
+        if (query.endDate.length <= 10) {
+          end.setUTCHours(23, 59, 59, 999);
+        }
+        where.createdAt.lte = end;
+      }
+    }
+
+    if (query.search?.trim()) {
+      const s = query.search.trim();
+      const searchConditions: any[] = [
+        { invoiceNumber: { contains: s, mode: 'insensitive' } },
+      ];
+      if (userRole === 'ADMIN' || userRole === 'FRONT_DESK') {
+        searchConditions.push(
+          { user: { name: { contains: s, mode: 'insensitive' } } },
+          { user: { email: { contains: s, mode: 'insensitive' } } },
+        );
+      }
+      where.OR = searchConditions;
+    }
+
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [total, payments, allMatching] = await Promise.all([
+      this.prisma.payment.count({ where }),
+      this.prisma.payment.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          membership: {
+            include: {
+              plan: { select: { id: true, name: true, duration: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.payment.findMany({
+        where,
+        select: {
+          amount: true,
+          status: true,
+        },
+      }),
+    ]);
+
+    let totalAmount = 0;
+    let succeededCount = 0;
+    let failedCount = 0;
+    let refundedCount = 0;
+    let pendingCount = 0;
+
+    for (const p of allMatching) {
+      if (p.status === PaymentStatus.SUCCEEDED) {
+        succeededCount++;
+        totalAmount += Number(p.amount);
+      } else if (p.status === PaymentStatus.FAILED) {
+        failedCount++;
+      } else if (p.status === PaymentStatus.REFUNDED) {
+        refundedCount++;
+      } else if (p.status === PaymentStatus.PENDING) {
+        pendingCount++;
+      }
+    }
+
+    return {
+      data: payments,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+      summary: {
+        totalAmount: Number(totalAmount.toFixed(2)),
+        succeededCount,
+        failedCount,
+        refundedCount,
+        pendingCount,
+      },
+    };
+  }
+
+  async handleChargeRefunded(charge: Stripe.Charge) {
+    const paymentIntentId =
+      typeof charge.payment_intent === 'string'
+        ? charge.payment_intent
+        : charge.payment_intent?.id;
+
+    const payment = await this.prisma.payment.findFirst({
+      where: {
+        OR: [
+          ...(paymentIntentId ? [{ stripePaymentIntentId: paymentIntentId }] : []),
+          ...(charge.id ? [{ stripePaymentIntentId: charge.id }] : []),
+        ],
+      },
+      include: {
+        user: true,
+        membership: true,
+      },
+    });
+
+    if (!payment) {
+      return;
+    }
+
+    const refundedAmount = Number((charge.amount_refunded / 100).toFixed(2));
+    const totalAmount = Number(payment.amount);
+    const isFullRefund = charge.refunded || refundedAmount >= totalAmount;
+    const newStatus = isFullRefund ? PaymentStatus.REFUNDED : PaymentStatus.SUCCEEDED;
+
+    await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        refundAmount: refundedAmount,
+        refundedAt: new Date(),
+        status: newStatus,
+      },
+    });
+
+    if (isFullRefund && payment.membershipId) {
+      await this.prisma.membership.update({
+        where: { id: payment.membershipId },
+        data: { status: MembershipStatus.CANCELLED },
+      });
+    }
+
+    const invNumber = payment.invoiceNumber || `INV-${payment.id.slice(-8).toUpperCase()}`;
+    await this.notifications.create({
+      userId: payment.userId,
+      type: 'PAYMENT_ALERT',
+      title: isFullRefund ? 'Payment Refunded' : 'Partial Refund Processed',
+      message: `A ${isFullRefund ? 'full' : 'partial'} refund of $${refundedAmount.toFixed(2)} was processed for invoice #${invNumber}.`,
+    });
+
+    this.mailer.sendRefundConfirmationEmail(
+      payment.user.email,
+      refundedAmount.toFixed(2),
+      invNumber,
+      isFullRefund,
+    );
+  }
+
+  async refundPayment(
+    paymentId: string,
+    dto: RefundPaymentDto = {},
+  ): Promise<RefundPaymentResult> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        membership: true,
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    if (payment.status !== PaymentStatus.SUCCEEDED) {
+      throw new BadRequestException(
+        `Cannot refund a payment with status '${payment.status}'. Only succeeded payments can be refunded.`,
+      );
+    }
+
+    const totalAmount = Number(payment.amount);
+    const currentRefunded = Number(payment.refundAmount || 0);
+    const remainingRefundable = Number((totalAmount - currentRefunded).toFixed(2));
+
+    if (remainingRefundable <= 0) {
+      throw new BadRequestException('This payment has already been fully refunded');
+    }
+
+    const requestedAmount =
+      dto.amount != null
+        ? Number(Number(dto.amount).toFixed(2))
+        : remainingRefundable;
+
+    if (requestedAmount <= 0) {
+      throw new BadRequestException('Refund amount must be greater than zero');
+    }
+
+    if (requestedAmount > remainingRefundable) {
+      throw new BadRequestException(
+        `Refund amount ($${requestedAmount}) exceeds the remaining refundable amount ($${remainingRefundable})`,
+      );
+    }
+
+    let stripeRefundId: string | null = null;
+    if (
+      payment.method === PaymentMethod.STRIPE &&
+      payment.stripePaymentIntentId &&
+      this.stripe
+    ) {
+      try {
+        const stripeRefund = await this.stripe.refunds.create({
+          payment_intent: payment.stripePaymentIntentId,
+          amount: Math.round(requestedAmount * 100),
+          reason: dto.reason ? 'requested_by_customer' : undefined,
+        });
+        stripeRefundId = stripeRefund.id;
+      } catch (stripeErr: any) {
+        throw new BadRequestException(`Stripe refund failed: ${stripeErr.message}`);
+      }
+    }
+
+    const newRefundAmount = Number((currentRefunded + requestedAmount).toFixed(2));
+    const isFullRefund = newRefundAmount >= totalAmount;
+    const newStatus = isFullRefund ? PaymentStatus.REFUNDED : PaymentStatus.SUCCEEDED;
+
+    const updatedPayment = await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        refundAmount: newRefundAmount,
+        refundedAt: new Date(),
+        status: newStatus,
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        membership: { include: { plan: true } },
+      },
+    });
+
+    // If fully refunded, cancel the associated membership access
+    if (isFullRefund && payment.membershipId) {
+      await this.prisma.membership.update({
+        where: { id: payment.membershipId },
+        data: { status: MembershipStatus.CANCELLED },
+      });
+    }
+
+    const formattedRefund = requestedAmount.toFixed(2);
+    const invNumber =
+      payment.invoiceNumber || `INV-${payment.id.slice(-8).toUpperCase()}`;
+
+    await this.notifications.create({
+      userId: payment.userId,
+      type: 'PAYMENT_ALERT',
+      title: isFullRefund ? 'Payment Refunded' : 'Partial Refund Processed',
+      message: `A ${isFullRefund ? 'full' : 'partial'} refund of $${formattedRefund} has been processed for invoice #${invNumber}.${dto.reason ? ` Reason: ${dto.reason}` : ''}`,
+    });
+
+    this.mailer.sendRefundConfirmationEmail(
+      payment.user.email,
+      formattedRefund,
+      invNumber,
+      isFullRefund,
+      dto.reason,
+    );
+
+    return {
+      success: true,
+      payment: updatedPayment,
+      refundAmount: requestedAmount,
+      totalRefunded: newRefundAmount,
+      isFullRefund,
+      stripeRefundId,
     };
   }
 }

@@ -19,10 +19,14 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard, type RequestUser } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+import { PaymentHistoryQueryDto } from './dto/payment-history-query.dto.js';
 import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
+import { RefundPaymentDto } from './dto/refund-payment.dto.js';
 import {
   type CheckoutSessionResult,
   type CreateCheckoutSessionResult,
+  type PaymentHistoryResult,
+  type RefundPaymentResult,
   type RetryInvoiceResult,
   type WalkInPaymentResult,
   PaymentsService,
@@ -85,6 +89,24 @@ export class PaymentsController {
     return this.paymentsService.searchMembers(query);
   }
 
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getPayments(
+    @CurrentUser() user: RequestUser,
+    @Query() query: PaymentHistoryQueryDto,
+  ): Promise<PaymentHistoryResult> {
+    return this.paymentsService.getPaymentHistory(user.sub, user.role, query);
+  }
+
+  @Get('history')
+  @UseGuards(JwtAuthGuard)
+  getPaymentHistory(
+    @CurrentUser() user: RequestUser,
+    @Query() query: PaymentHistoryQueryDto,
+  ): Promise<PaymentHistoryResult> {
+    return this.paymentsService.getPaymentHistory(user.sub, user.role, query);
+  }
+
   @Get(':id/invoice-pdf')
   @UseGuards(JwtAuthGuard)
   async downloadInvoicePdf(
@@ -100,5 +122,15 @@ export class PaymentsController {
       type: 'application/pdf',
       disposition: `attachment; filename="${filename}"`,
     });
+  }
+
+  @Post(':id/refund')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async refundPayment(
+    @Param('id') paymentId: string,
+    @Body() dto: RefundPaymentDto,
+  ): Promise<RefundPaymentResult> {
+    return this.paymentsService.refundPayment(paymentId, dto);
   }
 }
