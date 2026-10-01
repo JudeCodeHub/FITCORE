@@ -156,4 +156,25 @@ describe('PaymentsController', () => {
       expect(result).toBeDefined();
     });
   });
+
+  describe('getPayments & getPaymentHistory', () => {
+    it('should delegate getPayments to paymentsService.getPaymentHistory', async () => {
+      const user = { sub: 'u-1', email: 'u1@test.com', role: 'MEMBER' };
+      const query = { status: 'SUCCEEDED' as any, page: 1, limit: 10 };
+      const expectedResult = {
+        data: [{ id: 'p-1' }],
+        pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
+        summary: { totalAmount: 49, succeededCount: 1, failedCount: 0, refundedCount: 0, pendingCount: 0 },
+      };
+
+      mockPaymentsService.getPaymentHistory = vi.fn().mockResolvedValue(expectedResult);
+
+      const res1 = await controller.getPayments(user as any, query);
+      expect(mockPaymentsService.getPaymentHistory).toHaveBeenCalledWith('u-1', 'MEMBER', query);
+      expect(res1).toEqual(expectedResult);
+
+      const res2 = await controller.getPaymentHistory(user as any, query);
+      expect(res2).toEqual(expectedResult);
+    });
+  });
 });

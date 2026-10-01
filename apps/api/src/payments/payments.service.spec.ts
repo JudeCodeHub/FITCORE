@@ -33,6 +33,8 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
         findFirst: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
+        count: vi.fn(),
+        findMany: vi.fn(),
       },
       user: {
         findFirst: vi.fn(),
@@ -454,6 +456,93 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
 
       expect(result.filename).toBe('INV-EXISTING-123.pdf');
       expect(Buffer.isBuffer(result.buffer)).toBe(true);
+    });
+  });
+
+  describe('getPaymentHistory', () => {
+    it('scopes query to requesting user for MEMBER role', async () => {
+      mockPrisma.payment.count.mockResolvedValue(1);
+      mockPrisma.payment.findMany
+        .mockResolvedValueOnce([
+          {
+            id: 'pay-1',
+            userId: 'user-1',
+            amount: 49.0,
+            status: 'SUCCEEDED',
+            createdAt: new Date(),
+            user: { id: 'user-1', name: 'User One', email: 'user@one.com' },
+          },
+        ])
+        .mockResolvedValueOnce([{ amount: 49.0, status: 'SUCCEEDED' }]);
+
+      const result = await service.getPaymentHistory('user-1', 'MEMBER', {
+        userId: 'other-user', // Should be ignored because caller is MEMBER
+        status: 'SUCCEEDED' as any,
+      });
+
+      expect(mockPrisma.payment.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'user-1',
+            status: 'SUCCEEDED',
+          }),
+        }),
+      );
+      expect(result.data).toHaveLength(1);
+      expect(result.summary.totalAmount).toBe(49.0);
+      expect(result.summary.succeededCount).toBe(1);
+    });
+
+    it('allows ADMIN to filter by any user or view all payments with date ranges', async () => {
+      mockPrisma.payment.count.mockResolvedValue(2);
+      mockPrisma.payment.findMany
+        .mockResolvedValueOnce([
+          {
+            id: 'p-1',
+            userId: 'member-10',
+            amount: 100,
+            status: 'SUCCEEDED',
+            createdAt: new Date('2026-03-01'),
+          },
+          {
+            id: 'p-2',
+            userId: 'member-10',
+            amount: 50,
+            status: 'REFUNDED',
+            createdAt: new Date('2026-03-02'),
+          },
+        ])
+        .mockResolvedValueOnce([
+          { amount: 100, status: 'SUCCEEDED' },
+          { amount: 50, status: 'REFUNDED' },
+        ]);
+
+      const result = await service.getPaymentHistory('admin-id', 'ADMIN', {
+        userId: 'member-10',
+        startDate: '2026-03-01',
+        endDate: '2026-03-05',
+        search: 'INV-10',
+      });
+
+      expect(mockPrisma.payment.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'member-10',
+            createdAt: expect.objectContaining({
+              gte: expect.any(Date),
+              lte: expect.any(Date),
+            }),
+            OR: expect.arrayContaining([
+              { invoiceNumber: { contains: 'INV-10', mode: 'insensitive' } },
+            ]),
+          }),
+        }),
+      );
+
+      expect(result.pagination.total).toBe(2);
+      expect(result.summary.totalAmount).toBe(100);
+      expect(result.summary.succeededCount).toBe(1);
+      expect(result.summary.refundedCount).toBe(1);
     });
   });
 });

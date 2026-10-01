@@ -11,6 +11,7 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
   ADMIN: [
     { label: "Overview", href: "/admin" },
     { label: "Members", href: "/admin/members" },
+    { label: "Payments", href: "/admin/payments" },
     { label: "Plans", href: "/admin/plans" },
     { label: "Classes", href: "/admin/classes" },
     { label: "Equipment", href: "/admin/equipment" },

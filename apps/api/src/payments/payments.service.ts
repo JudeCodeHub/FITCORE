@@ -16,8 +16,28 @@ import { MailerService } from '../mailer/mailer.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+import { PaymentHistoryQueryDto } from './dto/payment-history-query.dto.js';
 import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
 import { buildPaymentInvoicePdf } from './pdf-invoice.util.js';
+
+export interface PaymentHistorySummary {
+  totalAmount: number;
+  succeededCount: number;
+  failedCount: number;
+  refundedCount: number;
+  pendingCount: number;
+}
+
+export interface PaymentHistoryResult {
+  data: any[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  summary: PaymentHistorySummary;
+}
 
 export interface CreateCheckoutSessionResult {
   sessionId: string;
@@ -885,6 +905,122 @@ export class PaymentsService {
     return {
       buffer,
       filename: `${invoiceNumber}.pdf`,
+    };
+  }
+
+  async getPaymentHistory(
+    requestingUserId: string,
+    userRole?: string,
+    query: PaymentHistoryQueryDto = {},
+  ): Promise<PaymentHistoryResult> {
+    const where: any = {};
+
+    // Role-based access: Members can only view their own payment history
+    if (userRole !== 'ADMIN' && userRole !== 'FRONT_DESK') {
+      where.userId = requestingUserId;
+    } else if (query.userId) {
+      where.userId = query.userId;
+    }
+
+    if (query.status) {
+      where.status = query.status;
+    }
+
+    if (query.method) {
+      where.method = query.method;
+    }
+
+    if (query.startDate || query.endDate) {
+      where.createdAt = {};
+      if (query.startDate) {
+        where.createdAt.gte = new Date(query.startDate);
+      }
+      if (query.endDate) {
+        const end = new Date(query.endDate);
+        if (query.endDate.length <= 10) {
+          end.setUTCHours(23, 59, 59, 999);
+        }
+        where.createdAt.lte = end;
+      }
+    }
+
+    if (query.search?.trim()) {
+      const s = query.search.trim();
+      const searchConditions: any[] = [
+        { invoiceNumber: { contains: s, mode: 'insensitive' } },
+      ];
+      if (userRole === 'ADMIN' || userRole === 'FRONT_DESK') {
+        searchConditions.push(
+          { user: { name: { contains: s, mode: 'insensitive' } } },
+          { user: { email: { contains: s, mode: 'insensitive' } } },
+        );
+      }
+      where.OR = searchConditions;
+    }
+
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [total, payments, allMatching] = await Promise.all([
+      this.prisma.payment.count({ where }),
+      this.prisma.payment.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          membership: {
+            include: {
+              plan: { select: { id: true, name: true, duration: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.payment.findMany({
+        where,
+        select: {
+          amount: true,
+          status: true,
+        },
+      }),
+    ]);
+
+    let totalAmount = 0;
+    let succeededCount = 0;
+    let failedCount = 0;
+    let refundedCount = 0;
+    let pendingCount = 0;
+
+    for (const p of allMatching) {
+      if (p.status === PaymentStatus.SUCCEEDED) {
+        succeededCount++;
+        totalAmount += Number(p.amount);
+      } else if (p.status === PaymentStatus.FAILED) {
+        failedCount++;
+      } else if (p.status === PaymentStatus.REFUNDED) {
+        refundedCount++;
+      } else if (p.status === PaymentStatus.PENDING) {
+        pendingCount++;
+      }
+    }
+
+    return {
+      data: payments,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+      summary: {
+        totalAmount: Number(totalAmount.toFixed(2)),
+        succeededCount,
+        failedCount,
+        refundedCount,
+        pendingCount,
+      },
     };
   }
 }

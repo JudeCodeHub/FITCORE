@@ -19,10 +19,12 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard, type RequestUser } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+import { PaymentHistoryQueryDto } from './dto/payment-history-query.dto.js';
 import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
 import {
   type CheckoutSessionResult,
   type CreateCheckoutSessionResult,
+  type PaymentHistoryResult,
   type RetryInvoiceResult,
   type WalkInPaymentResult,
   PaymentsService,
@@ -83,6 +85,24 @@ export class PaymentsController {
   @Roles('FRONT_DESK', 'ADMIN')
   searchMembers(@Query('q') query?: string) {
     return this.paymentsService.searchMembers(query);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getPayments(
+    @CurrentUser() user: RequestUser,
+    @Query() query: PaymentHistoryQueryDto,
+  ): Promise<PaymentHistoryResult> {
+    return this.paymentsService.getPaymentHistory(user.sub, user.role, query);
+  }
+
+  @Get('history')
+  @UseGuards(JwtAuthGuard)
+  getPaymentHistory(
+    @CurrentUser() user: RequestUser,
+    @Query() query: PaymentHistoryQueryDto,
+  ): Promise<PaymentHistoryResult> {
+    return this.paymentsService.getPaymentHistory(user.sub, user.role, query);
   }
 
   @Get(':id/invoice-pdf')
