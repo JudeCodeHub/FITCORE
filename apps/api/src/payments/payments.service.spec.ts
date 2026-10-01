@@ -31,6 +31,7 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
       },
       payment: {
         findFirst: vi.fn(),
+        findUnique: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
         count: vi.fn(),
@@ -47,6 +48,7 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
       sendPaymentFailedDunningEmail: vi.fn(),
       sendMembershipSuspendedEmail: vi.fn(),
       sendCashPaymentReceiptEmail: vi.fn(),
+      sendRefundConfirmationEmail: vi.fn(),
     };
 
     mockNotifications = {
@@ -543,6 +545,171 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
       expect(result.summary.totalAmount).toBe(100);
       expect(result.summary.succeededCount).toBe(1);
       expect(result.summary.refundedCount).toBe(1);
+    });
+  });
+
+  describe('refundPayment', () => {
+    it('throws NotFoundException if payment does not exist', async () => {
+      mockPrisma.payment.findUnique.mockResolvedValue(null);
+      await expect(service.refundPayment('nonexistent')).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws BadRequestException if payment status is not SUCCEEDED', async () => {
+      mockPrisma.payment.findUnique.mockResolvedValue({
+        id: 'p-1',
+        status: 'FAILED',
+        amount: 50,
+      });
+      await expect(service.refundPayment('p-1')).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException if payment is already fully refunded', async () => {
+      mockPrisma.payment.findUnique.mockResolvedValue({
+        id: 'p-1',
+        status: 'SUCCEEDED',
+        amount: 50,
+        refundAmount: 50,
+      });
+      await expect(service.refundPayment('p-1')).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException if requested refund exceeds remaining refundable', async () => {
+      mockPrisma.payment.findUnique.mockResolvedValue({
+        id: 'p-1',
+        status: 'SUCCEEDED',
+        amount: 50,
+        refundAmount: 30,
+      });
+      await expect(service.refundPayment('p-1', { amount: 25 })).rejects.toThrow(BadRequestException);
+    });
+
+    it('processes partial refund and keeps SUCCEEDED status', async () => {
+      const mockPayment = {
+        id: 'pay-part',
+        userId: 'u-1',
+        amount: 100,
+        refundAmount: 0,
+        status: 'SUCCEEDED',
+        method: 'CASH',
+        invoiceNumber: 'INV-PART-1',
+        user: { id: 'u-1', email: 'user@test.com', name: 'User' },
+      };
+
+      mockPrisma.payment.findUnique.mockResolvedValue(mockPayment);
+      mockPrisma.payment.update.mockResolvedValue({
+        ...mockPayment,
+        refundAmount: 40,
+        status: 'SUCCEEDED',
+      });
+
+      const result = await service.refundPayment('pay-part', { amount: 40, reason: 'Customer requested discount' });
+
+      expect(result.success).toBe(true);
+      expect(result.isFullRefund).toBe(false);
+      expect(result.refundAmount).toBe(40);
+      expect(mockPrisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'pay-part' },
+          data: expect.objectContaining({
+            refundAmount: 40,
+            status: 'SUCCEEDED',
+          }),
+        }),
+      );
+      expect(mockMailer.sendRefundConfirmationEmail).toHaveBeenCalledWith(
+        'user@test.com',
+        '40.00',
+        'INV-PART-1',
+        false,
+        'Customer requested discount',
+      );
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'PAYMENT_ALERT',
+        }),
+      );
+    });
+
+    it('processes full refund, updates status to REFUNDED, and cancels membership', async () => {
+      const mockPayment = {
+        id: 'pay-full',
+        userId: 'u-1',
+        membershipId: 'mem-1',
+        amount: 100,
+        refundAmount: 0,
+        status: 'SUCCEEDED',
+        method: 'CASH',
+        invoiceNumber: 'INV-FULL-1',
+        user: { id: 'u-1', email: 'user@test.com', name: 'User' },
+      };
+
+      mockPrisma.payment.findUnique.mockResolvedValue(mockPayment);
+      mockPrisma.payment.update.mockResolvedValue({
+        ...mockPayment,
+        refundAmount: 100,
+        status: 'REFUNDED',
+      });
+
+      const result = await service.refundPayment('pay-full');
+
+      expect(result.success).toBe(true);
+      expect(result.isFullRefund).toBe(true);
+      expect(result.refundAmount).toBe(100);
+      expect(mockPrisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            refundAmount: 100,
+            status: 'REFUNDED',
+          }),
+        }),
+      );
+      expect(mockPrisma.membership.update).toHaveBeenCalledWith({
+        where: { id: 'mem-1' },
+        data: { status: 'CANCELLED' },
+      });
+      expect(mockMailer.sendRefundConfirmationEmail).toHaveBeenCalledWith(
+        'user@test.com',
+        '100.00',
+        'INV-FULL-1',
+        true,
+        undefined,
+      );
+    });
+  });
+
+  describe('handleChargeRefunded', () => {
+    it('updates payment and membership on Stripe charge.refunded event', async () => {
+      const mockPayment = {
+        id: 'pay-charge',
+        userId: 'u-1',
+        membershipId: 'mem-1',
+        amount: 80,
+        user: { email: 'user@test.com' },
+      };
+
+      mockPrisma.payment.findFirst.mockResolvedValue(mockPayment);
+
+      await service.handleChargeRefunded({
+        id: 'ch_123',
+        payment_intent: 'pi_123',
+        amount_refunded: 8000,
+        refunded: true,
+      } as any);
+
+      expect(mockPrisma.payment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'pay-charge' },
+          data: expect.objectContaining({
+            refundAmount: 80,
+            status: 'REFUNDED',
+          }),
+        }),
+      );
+      expect(mockPrisma.membership.update).toHaveBeenCalledWith({
+        where: { id: 'mem-1' },
+        data: { status: 'CANCELLED' },
+      });
     });
   });
 });

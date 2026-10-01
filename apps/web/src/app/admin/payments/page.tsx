@@ -22,6 +22,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface AdminPaymentItem {
   id: string;
@@ -88,6 +96,49 @@ export default function AdminPaymentsPage() {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [selectedPaymentForRefund, setSelectedPaymentForRefund] =
+    useState<AdminPaymentItem | null>(null);
+  const [refundAmount, setRefundAmount] = useState<string>("");
+  const [refundReason, setRefundReason] = useState<string>("");
+  const [isFullRefund, setIsFullRefund] = useState<boolean>(true);
+  const [refundLoading, setRefundLoading] = useState<boolean>(false);
+  const [refundError, setRefundError] = useState<string | null>(null);
+
+  const openRefundModal = (payment: AdminPaymentItem) => {
+    const remaining = Number(payment.amount) - Number(payment.refundAmount || 0);
+    setSelectedPaymentForRefund(payment);
+    setIsFullRefund(true);
+    setRefundAmount(remaining.toFixed(2));
+    setRefundReason("");
+    setRefundError(null);
+  };
+
+  const handleProcessRefund = async () => {
+    if (!selectedPaymentForRefund) return;
+    const numAmount = parseFloat(refundAmount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      setRefundError("Please enter a valid refund amount.");
+      return;
+    }
+
+    setRefundLoading(true);
+    setRefundError(null);
+    try {
+      await apiFetch(`/payments/${selectedPaymentForRefund.id}/refund`, {
+        method: "POST",
+        body: JSON.stringify({
+          amount: numAmount,
+          reason: refundReason.trim() || undefined,
+        }),
+      });
+      setSelectedPaymentForRefund(null);
+      await fetchPayments(pagination.page);
+    } catch (err: any) {
+      setRefundError(err?.message || "Failed to process refund");
+    } finally {
+      setRefundLoading(false);
+    }
+  };
 
   const fetchPayments = async (targetPage = 1) => {
     setLoading(true);
@@ -402,11 +453,28 @@ export default function AdminPaymentsPage() {
                           {p.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-sm">
-                        ${Number(p.amount).toFixed(2)}
+                      <TableCell className="text-right">
+                        <div className="font-semibold text-sm">
+                          ${Number(p.amount).toFixed(2)}
+                        </div>
+                        {p.refundAmount && Number(p.refundAmount) > 0 && (
+                          <div className="text-[11px] text-purple-600 dark:text-purple-400">
+                            -${Number(p.refundAmount).toFixed(2)} refunded
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {p.status === "SUCCEEDED" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                              onClick={() => openRefundModal(p)}
+                            >
+                              Refund
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -462,6 +530,143 @@ export default function AdminPaymentsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Refund Modal Dialog */}
+      {selectedPaymentForRefund && (
+        <Dialog
+          open={true}
+          onOpenChange={(open) => !open && setSelectedPaymentForRefund(null)}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Issue Payment Refund</DialogTitle>
+              <DialogDescription>
+                Process a full or partial refund for {selectedPaymentForRefund.user.name} ({selectedPaymentForRefund.user.email}).
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              {refundError && (
+                <div className="rounded-md bg-destructive/15 p-2.5 text-xs text-destructive font-medium">
+                  {refundError}
+                </div>
+              )}
+
+              {(() => {
+                const total = Number(selectedPaymentForRefund.amount);
+                const prevRefund = Number(selectedPaymentForRefund.refundAmount || 0);
+                const maxRefundable = Math.max(0, total - prevRefund);
+
+                return (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border bg-muted/40 p-3 space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Invoice:</span>
+                        <span className="font-mono font-medium">
+                          {selectedPaymentForRefund.invoiceNumber || selectedPaymentForRefund.id}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Original Total:</span>
+                        <span className="font-medium">${total.toFixed(2)}</span>
+                      </div>
+                      {prevRefund > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Already Refunded:</span>
+                          <span className="font-medium text-purple-600 dark:text-purple-400">
+                            -${prevRefund.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between pt-1 border-t font-semibold">
+                        <span>Max Refundable:</span>
+                        <span className="text-primary">${maxRefundable.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Refund Type</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          type="button"
+                          variant={isFullRefund ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setIsFullRefund(true);
+                            setRefundAmount(maxRefundable.toFixed(2));
+                          }}
+                        >
+                          Full (${maxRefundable.toFixed(2)})
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={!isFullRefund ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setIsFullRefund(false)}
+                        >
+                          Partial
+                        </Button>
+                      </div>
+                    </div>
+
+                    {!isFullRefund && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs" htmlFor="refund-amount">
+                          Partial Refund Amount ($)
+                        </Label>
+                        <Input
+                          id="refund-amount"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          max={maxRefundable}
+                          value={refundAmount}
+                          onChange={(e) => setRefundAmount(e.target.value)}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs" htmlFor="refund-reason">
+                        Reason (Optional)
+                      </Label>
+                      <Input
+                        id="refund-reason"
+                        placeholder="e.g. Cancelled within cooling period, billing error"
+                        value={refundReason}
+                        onChange={(e) => setRefundReason(e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <DialogFooter className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={refundLoading}
+                onClick={() => setSelectedPaymentForRefund(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={refundLoading}
+                onClick={handleProcessRefund}
+              >
+                {refundLoading
+                  ? "Processing..."
+                  : `Confirm Refund ($${Number(refundAmount || 0).toFixed(2)})`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

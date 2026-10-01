@@ -177,4 +177,24 @@ describe('PaymentsController', () => {
       expect(res2).toEqual(expectedResult);
     });
   });
+
+  describe('refundPayment', () => {
+    it('should delegate to paymentsService.refundPayment', async () => {
+      const dto = { amount: 25, reason: 'Customer requested' };
+      const expectedResult = {
+        success: true,
+        payment: { id: 'p-1', status: 'SUCCEEDED', refundAmount: 25 },
+        refundAmount: 25,
+        totalRefunded: 25,
+        isFullRefund: false,
+      };
+
+      mockPaymentsService.refundPayment = vi.fn().mockResolvedValue(expectedResult);
+
+      const result = await controller.refundPayment('p-1', dto);
+
+      expect(mockPaymentsService.refundPayment).toHaveBeenCalledWith('p-1', dto);
+      expect(result).toEqual(expectedResult);
+    });
+  });
 });

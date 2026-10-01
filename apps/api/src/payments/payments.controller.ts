@@ -21,10 +21,12 @@ import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
 import { PaymentHistoryQueryDto } from './dto/payment-history-query.dto.js';
 import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
+import { RefundPaymentDto } from './dto/refund-payment.dto.js';
 import {
   type CheckoutSessionResult,
   type CreateCheckoutSessionResult,
   type PaymentHistoryResult,
+  type RefundPaymentResult,
   type RetryInvoiceResult,
   type WalkInPaymentResult,
   PaymentsService,
@@ -120,5 +122,15 @@ export class PaymentsController {
       type: 'application/pdf',
       disposition: `attachment; filename="${filename}"`,
     });
+  }
+
+  @Post(':id/refund')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async refundPayment(
+    @Param('id') paymentId: string,
+    @Body() dto: RefundPaymentDto,
+  ): Promise<RefundPaymentResult> {
+    return this.paymentsService.refundPayment(paymentId, dto);
   }
 }
