@@ -136,4 +136,24 @@ describe('PaymentsController', () => {
       expect(result).toEqual([{ id: 'u-1' }]);
     });
   });
+
+  describe('downloadInvoicePdf', () => {
+    it('should delegate to paymentsService.generateInvoicePdf and return StreamableFile', async () => {
+      const user = { sub: 'u-1', email: 'u1@test.com', role: 'MEMBER' };
+      const fakeBuffer = Buffer.from('PDF_CONTENT');
+      mockPaymentsService.generateInvoicePdf = vi.fn().mockResolvedValue({
+        buffer: fakeBuffer,
+        filename: 'INV-123.pdf',
+      });
+
+      const result = await controller.downloadInvoicePdf(user as any, 'pay-123');
+
+      expect(mockPaymentsService.generateInvoicePdf).toHaveBeenCalledWith(
+        'u-1',
+        'pay-123',
+        'MEMBER',
+      );
+      expect(result).toBeDefined();
+    });
+  });
 });

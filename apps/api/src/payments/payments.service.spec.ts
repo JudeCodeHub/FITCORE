@@ -1,4 +1,4 @@
-import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PaymentsService } from './payments.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -374,6 +374,86 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
         }),
       );
       expect(res).toHaveLength(1);
+    });
+  });
+
+  describe('generateInvoicePdf', () => {
+    it('throws NotFoundException when payment record does not exist', async () => {
+      mockPrisma.payment.findFirst.mockResolvedValue(null);
+
+      await expect(service.generateInvoicePdf('user-1', 'pay-999')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ForbiddenException when a member tries to access another member invoice', async () => {
+      mockPrisma.payment.findFirst.mockResolvedValue({
+        id: 'pay-1',
+        userId: 'other-user',
+        amount: 50,
+      });
+
+      await expect(
+        service.generateInvoicePdf('user-1', 'pay-1', 'MEMBER'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('generates a PDF buffer and creates an invoiceNumber if missing', async () => {
+      const mockPayment = {
+        id: 'pay-12345678',
+        userId: 'user-1',
+        amount: 49.99,
+        currency: 'usd',
+        status: 'SUCCEEDED',
+        method: 'STRIPE',
+        createdAt: new Date('2026-03-01'),
+        invoiceNumber: null,
+        user: { id: 'user-1', name: 'Alex Gymmer', email: 'alex@example.com' },
+        membership: {
+          id: 'mem-1',
+          startDate: new Date('2026-03-01'),
+          endDate: new Date('2026-04-01'),
+          plan: { name: 'Gold Unlimited', duration: 'MONTHLY' },
+        },
+      };
+
+      mockPrisma.payment.findFirst.mockResolvedValue(mockPayment);
+      mockPrisma.payment.update.mockResolvedValue({
+        ...mockPayment,
+        invoiceNumber: 'INV-12345678',
+      });
+
+      const result = await service.generateInvoicePdf('user-1', 'pay-12345678', 'MEMBER');
+
+      expect(mockPrisma.payment.update).toHaveBeenCalledWith({
+        where: { id: 'pay-12345678' },
+        data: { invoiceNumber: 'INV-12345678' },
+      });
+      expect(result.filename).toBe('INV-12345678.pdf');
+      expect(Buffer.isBuffer(result.buffer)).toBe(true);
+      expect(result.buffer.length).toBeGreaterThan(0);
+    });
+
+    it('allows ADMIN or FRONT_DESK to generate PDF for any user', async () => {
+      const mockPayment = {
+        id: 'pay-abc',
+        userId: 'member-99',
+        amount: 99.0,
+        currency: 'usd',
+        status: 'SUCCEEDED',
+        method: 'CASH',
+        createdAt: new Date(),
+        invoiceNumber: 'INV-EXISTING-123',
+        user: { id: 'member-99', name: 'Sam Member', email: 'sam@example.com' },
+        membership: null,
+      };
+
+      mockPrisma.payment.findFirst.mockResolvedValue(mockPayment);
+
+      const result = await service.generateInvoicePdf('admin-1', 'pay-abc', 'ADMIN');
+
+      expect(result.filename).toBe('INV-EXISTING-123.pdf');
+      expect(Buffer.isBuffer(result.buffer)).toBe(true);
     });
   });
 });

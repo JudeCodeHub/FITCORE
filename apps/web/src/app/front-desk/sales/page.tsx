@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/shared/api-client/http";
+import { downloadReport } from "@/shared/api-client/download";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -151,6 +152,13 @@ export default function WalkInSalesPage() {
               }}
             >
               Start New Sale
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => downloadReport(`/payments/${receipt.payment.id}/invoice-pdf`)}
+            >
+              📄 Download Invoice PDF
             </Button>
           </CardContent>
         </Card>

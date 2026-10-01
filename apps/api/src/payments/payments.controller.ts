@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  StreamableFile,
   UseGuards,
   type RawBodyRequest,
 } from '@nestjs/common';
@@ -82,5 +83,22 @@ export class PaymentsController {
   @Roles('FRONT_DESK', 'ADMIN')
   searchMembers(@Query('q') query?: string) {
     return this.paymentsService.searchMembers(query);
+  }
+
+  @Get(':id/invoice-pdf')
+  @UseGuards(JwtAuthGuard)
+  async downloadInvoicePdf(
+    @CurrentUser() user: RequestUser,
+    @Param('id') paymentId: string,
+  ): Promise<StreamableFile> {
+    const { buffer, filename } = await this.paymentsService.generateInvoicePdf(
+      user.sub,
+      paymentId,
+      user.role,
+    );
+    return new StreamableFile(buffer, {
+      type: 'application/pdf',
+      disposition: `attachment; filename="${filename}"`,
+    });
   }
 }
