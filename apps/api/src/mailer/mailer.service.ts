@@ -75,4 +75,10 @@ export class MailerService {
       `[stub email] Membership suspended for ${to}: Payment retries failed. Your ${planName || 'FitCore'} membership has been suspended until payment is resolved.`,
     );
   }
+
+  sendCashPaymentReceiptEmail(to: string, amount: string, invoiceNumber: string) {
+    this.logger.log(
+      `[stub email] Cash payment receipt for ${to}: $${amount} received at front desk. Invoice #${invoiceNumber}.`,
+    );
+  }
 }

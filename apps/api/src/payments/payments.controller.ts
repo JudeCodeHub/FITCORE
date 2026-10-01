@@ -7,18 +7,23 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
   type RawBodyRequest,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard, type RequestUser } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
 import {
   type CheckoutSessionResult,
   type CreateCheckoutSessionResult,
   type RetryInvoiceResult,
+  type WalkInPaymentResult,
   PaymentsService,
 } from './payments.service.js';
 
@@ -60,5 +65,22 @@ export class PaymentsController {
     @Param('invoiceId') invoiceId: string,
   ): Promise<RetryInvoiceResult> {
     return this.paymentsService.retryInvoicePayment(user.sub, invoiceId);
+  }
+
+  @Post('walk-in')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('FRONT_DESK', 'ADMIN')
+  recordWalkInPayment(
+    @CurrentUser() user: RequestUser,
+    @Body() dto: RecordWalkInPaymentDto,
+  ): Promise<WalkInPaymentResult> {
+    return this.paymentsService.recordWalkInPayment(user.sub, dto);
+  }
+
+  @Get('members')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('FRONT_DESK', 'ADMIN')
+  searchMembers(@Query('q') query?: string) {
+    return this.paymentsService.searchMembers(query);
   }
 }

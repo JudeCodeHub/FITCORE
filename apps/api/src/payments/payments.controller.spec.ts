@@ -110,4 +110,30 @@ describe('PaymentsController', () => {
       expect(result).toEqual(expectedResult);
     });
   });
+
+  describe('recordWalkInPayment', () => {
+    it('should delegate to paymentsService.recordWalkInPayment', async () => {
+      const user = { sub: 'staff-1', email: 'staff@test.com', role: 'FRONT_DESK' };
+      const dto = { userId: 'u-1', amount: 50 };
+      const expectedResult = { success: true, payment: { id: 'p-1' }, invoiceNumber: 'INV-1' };
+
+      mockPaymentsService.recordWalkInPayment = vi.fn().mockResolvedValue(expectedResult);
+
+      const result = await controller.recordWalkInPayment(user, dto as any);
+
+      expect(mockPaymentsService.recordWalkInPayment).toHaveBeenCalledWith('staff-1', dto);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('searchMembers', () => {
+    it('should delegate to paymentsService.searchMembers', async () => {
+      mockPaymentsService.searchMembers = vi.fn().mockResolvedValue([{ id: 'u-1' }]);
+
+      const result = await controller.searchMembers('John');
+
+      expect(mockPaymentsService.searchMembers).toHaveBeenCalledWith('John');
+      expect(result).toEqual([{ id: 'u-1' }]);
+    });
+  });
 });

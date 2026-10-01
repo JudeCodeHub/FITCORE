@@ -15,6 +15,7 @@ import { MailerService } from '../mailer/mailer.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
 
 export interface CreateCheckoutSessionResult {
   sessionId: string;
@@ -33,6 +34,12 @@ export interface RetryInvoiceResult {
   status: string | null;
   paid: boolean;
   hostedInvoiceUrl?: string | null;
+}
+
+export interface WalkInPaymentResult {
+  success: boolean;
+  payment: any;
+  invoiceNumber: string;
 }
 
 @Injectable()
@@ -687,6 +694,154 @@ export class PaymentsService {
     await this.prisma.membership.update({
       where: { id: membership.id },
       data: { status: MembershipStatus.CANCELLED },
+    });
+  }
+
+  async recordWalkInPayment(
+    recorderUserId: string,
+    dto: RecordWalkInPaymentDto,
+  ): Promise<WalkInPaymentResult> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: dto.userId },
+    });
+    if (!user) {
+      throw new NotFoundException('Member not found');
+    }
+
+    let membership: any = null;
+
+    if (dto.planId) {
+      const plan = await this.prisma.plan.findUnique({
+        where: { id: dto.planId },
+      });
+      if (!plan || !plan.isActive) {
+        throw new BadRequestException('Plan is not found or inactive');
+      }
+
+      const now = new Date();
+      const endDate = this.calculateEndDate(now, plan.duration);
+
+      const existing = await this.prisma.membership.findFirst({
+        where: {
+          userId: user.id,
+          status: {
+            in: [
+              MembershipStatus.PENDING,
+              MembershipStatus.ACTIVE,
+              MembershipStatus.EXPIRED,
+            ],
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (existing) {
+        membership = await this.prisma.membership.update({
+          where: { id: existing.id },
+          data: {
+            planId: plan.id,
+            status: MembershipStatus.ACTIVE,
+            startDate: now,
+            endDate,
+          },
+          include: { plan: true },
+        });
+      } else {
+        membership = await this.prisma.membership.create({
+          data: {
+            userId: user.id,
+            planId: plan.id,
+            status: MembershipStatus.ACTIVE,
+            startDate: now,
+            endDate,
+          },
+          include: { plan: true },
+        });
+      }
+    } else if (dto.membershipId) {
+      membership = await this.prisma.membership.findUnique({
+        where: { id: dto.membershipId },
+        include: { plan: true },
+      });
+      if (!membership) {
+        throw new NotFoundException('Membership not found');
+      }
+      membership = await this.prisma.membership.update({
+        where: { id: membership.id },
+        data: { status: MembershipStatus.ACTIVE },
+        include: { plan: true },
+      });
+    }
+
+    const invoiceNumber = `INV-CASH-${Date.now().toString(36).toUpperCase()}-${Math.floor(
+      1000 + Math.random() * 9000,
+    )}`;
+
+    const amountDecimal = Number(dto.amount).toFixed(2);
+    const method = dto.method || PaymentMethod.CASH;
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        userId: user.id,
+        membershipId: membership?.id,
+        amount: amountDecimal,
+        currency: 'usd',
+        status: PaymentStatus.SUCCEEDED,
+        method,
+        invoiceNumber,
+        failureReason: dto.notes ? `Walk-in note: ${dto.notes}` : null,
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        membership: { include: { plan: true } },
+      },
+    });
+
+    const methodName = method === PaymentMethod.CARD_PRESENT ? 'card' : 'cash';
+
+    // 1. Notify member via in-app alert
+    await this.notifications.create({
+      userId: user.id,
+      type: 'PAYMENT_ALERT',
+      title: 'Payment Received (Walk-In)',
+      message: `A walk-in payment of $${amountDecimal} was recorded at the front desk via ${methodName}. Invoice #${invoiceNumber}.`,
+    });
+
+    // 2. Send stub email receipt
+    this.mailer.sendCashPaymentReceiptEmail(user.email, amountDecimal, invoiceNumber);
+
+    return {
+      success: true,
+      payment,
+      invoiceNumber,
+    };
+  }
+
+  async searchMembers(query?: string) {
+    return this.prisma.user.findMany({
+      where: {
+        role: 'MEMBER',
+        ...(query
+          ? {
+              OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { email: { contains: query, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        memberships: {
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+          include: { plan: true },
+        },
+      },
+      take: 20,
+      orderBy: { name: 'asc' },
     });
   }
 }

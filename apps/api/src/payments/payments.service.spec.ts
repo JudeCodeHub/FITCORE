@@ -36,12 +36,15 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
       },
       user: {
         findFirst: vi.fn(),
+        findUnique: vi.fn(),
+        findMany: vi.fn(),
       },
     };
 
     mockMailer = {
       sendPaymentFailedDunningEmail: vi.fn(),
       sendMembershipSuspendedEmail: vi.fn(),
+      sendCashPaymentReceiptEmail: vi.fn(),
     };
 
     mockNotifications = {
@@ -301,6 +304,76 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
       await expect(
         service.retryInvoicePayment('user-1', 'in_unknown'),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('recordWalkInPayment throws NotFoundException when member not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.recordWalkInPayment('staff-1', { userId: 'u-missing', amount: 50 }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('recordWalkInPayment records cash payment, activates membership, and sends alerts', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u-1', name: 'John Doe', email: 'john@test.com' });
+      mockPrisma.plan.findUnique.mockResolvedValue({ id: 'p-1', name: 'Gold', price: 99, duration: 'MONTHLY', isActive: true });
+      mockPrisma.membership.findFirst.mockResolvedValue(null);
+      mockPrisma.membership.create.mockResolvedValue({ id: 'mem-1' });
+      mockPrisma.payment.create.mockResolvedValue({
+        id: 'pay-1',
+        amount: '99.00',
+        method: 'CASH',
+        invoiceNumber: 'INV-CASH-123',
+      });
+
+      const res = await service.recordWalkInPayment('staff-1', {
+        userId: 'u-1',
+        planId: 'p-1',
+        amount: 99,
+        method: 'CASH' as any,
+        notes: 'Paid at front counter',
+      });
+
+      expect(res.success).toBe(true);
+      expect(mockPrisma.membership.create).toHaveBeenCalled();
+      expect(mockPrisma.payment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: 'u-1',
+            amount: '99.00',
+            status: 'SUCCEEDED',
+            method: 'CASH',
+          }),
+        }),
+      );
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'PAYMENT_ALERT',
+        }),
+      );
+      expect(mockMailer.sendCashPaymentReceiptEmail).toHaveBeenCalledWith(
+        'john@test.com',
+        '99.00',
+        expect.stringContaining('INV-CASH-'),
+      );
+    });
+
+    it('searchMembers queries active members', async () => {
+      mockPrisma.user.findMany.mockResolvedValue([
+        { id: 'u-1', name: 'John Doe', email: 'john@test.com', memberships: [] },
+      ]);
+
+      const res = await service.searchMembers('John');
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            role: 'MEMBER',
+          }),
+        }),
+      );
+      expect(res).toHaveLength(1);
     });
   });
 });
