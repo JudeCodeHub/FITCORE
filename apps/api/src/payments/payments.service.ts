@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -16,6 +17,7 @@ import { NotificationsService } from '../notifications/notifications.service.js'
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
 import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
+import { buildPaymentInvoicePdf } from './pdf-invoice.util.js';
 
 export interface CreateCheckoutSessionResult {
   sessionId: string;
@@ -844,5 +846,45 @@ export class PaymentsService {
       orderBy: { name: 'asc' },
     });
   }
-}
 
+  async generateInvoicePdf(
+    userId: string,
+    paymentId: string,
+    userRole?: string,
+  ): Promise<{ buffer: Buffer; filename: string }> {
+    const payment = await this.prisma.payment.findFirst({
+      where: {
+        OR: [{ id: paymentId }, { invoiceNumber: paymentId }],
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        membership: { include: { plan: true } },
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment record not found');
+    }
+
+    // Role-based access check: members can only download their own invoices
+    if (userRole !== 'ADMIN' && userRole !== 'FRONT_DESK' && payment.userId !== userId) {
+      throw new ForbiddenException('Access denied to this invoice');
+    }
+
+    let invoiceNumber = payment.invoiceNumber;
+    if (!invoiceNumber) {
+      invoiceNumber = `INV-${payment.id.slice(-8).toUpperCase()}`;
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: { invoiceNumber },
+      });
+      payment.invoiceNumber = invoiceNumber;
+    }
+
+    const buffer = await buildPaymentInvoicePdf(payment as any);
+    return {
+      buffer,
+      filename: `${invoiceNumber}.pdf`,
+    };
+  }
+}
