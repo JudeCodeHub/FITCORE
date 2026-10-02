@@ -1,4 +1,5 @@
 export const landingStyles = {
-  page: "dark min-h-screen bg-black text-white selection:bg-primary selection:text-primary-foreground",
+  page: "min-h-screen bg-[#fafafc] text-slate-900 selection:bg-emerald-500 selection:text-white",
 } as const;
+
 

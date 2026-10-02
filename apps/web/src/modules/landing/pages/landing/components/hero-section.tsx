@@ -30,9 +30,10 @@ export function HeroSection() {
 
       {/* Smooth bottom fade into next section */}
       <div
-        className="pointer-events-none absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black via-black/80 to-transparent z-10"
+        className="pointer-events-none absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#fafafc] via-[#fafafc]/80 to-transparent z-10"
         aria-hidden="true"
       />
+
 
       {/* Hero Content */}
       <div className={styles.inner}>

@@ -48,38 +48,38 @@ export function ClassBookingBentoCard() {
       <div className={styles.textCol("lg:order-2")}>
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3.5 py-1 text-xs font-mono font-bold tracking-widest text-amber-400 uppercase">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1 text-xs font-mono font-bold tracking-widest text-amber-800 uppercase">
               <Zap className="h-3.5 w-3.5" />
               02 / STUDIO BOOKINGS
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-300">
-              <Flame className="h-3 w-3 fill-amber-400 text-amber-400" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+              <Flame className="h-3 w-3 fill-amber-500 text-amber-500" />
               HIGH INTENSITY
             </span>
           </div>
 
-          <h3 className="mt-5 font-heading text-3xl sm:text-5xl font-bold tracking-tight text-white leading-[1.1]">
+          <h3 className="mt-5 font-heading text-3xl sm:text-5xl font-bold tracking-tight text-slate-950 leading-[1.1]">
             Live Studio Seat Radar
           </h3>
-          <p className="mt-4 text-base sm:text-lg text-white/70 max-w-lg leading-relaxed">
+          <p className="mt-4 text-base sm:text-lg text-slate-600 max-w-lg leading-relaxed">
             Reserve spots in real time with row-level transaction locks. Zero duplicate seat allocations during rush drops.
           </p>
         </div>
 
-        {/* Open Class Booking Matrix (No enclosing box) */}
+        {/* Open Class Booking Matrix */}
         <div className="mt-8 space-y-5 max-w-xl">
           {/* Header & Status */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div>
-              <p className="font-heading text-base font-bold text-white">Morning HIIT & Burn</p>
-              <p className="text-xs text-white/50">07:00 AM (45m) · Coach Aria · Studio A</p>
+              <p className="font-heading text-base font-bold text-slate-900">Morning HIIT & Burn</p>
+              <p className="text-xs text-slate-500">07:00 AM (45m) · Coach Aria · Studio A</p>
             </div>
 
             <span
               className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
                 isBooked
-                  ? "border border-red-500/40 bg-red-500/15 text-red-400"
-                  : "border border-primary/40 bg-primary/15 text-primary"
+                  ? "border border-red-200 bg-red-50 text-red-700"
+                  : "border border-emerald-200 bg-emerald-50 text-emerald-800"
               }`}
             >
               {isBooked ? "12 / 12 FULL" : "11 / 12 Booked"}
@@ -88,9 +88,9 @@ export function ClassBookingBentoCard() {
 
           {/* 12-Spot Matrix */}
           <div>
-            <div className="flex items-center justify-between text-xs text-white/50 mb-2.5">
+            <div className="flex items-center justify-between text-xs text-slate-500 mb-2.5">
               <span>Studio Floor Layout (Select Spot 12)</span>
-              <span className="text-primary font-mono text-[11px]">Real-Time Sync</span>
+              <span className="text-emerald-600 font-mono text-[11px] font-semibold">Real-Time Sync</span>
             </div>
 
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -103,10 +103,10 @@ export function ClassBookingBentoCard() {
                     onClick={() => isUserSpot && setIsBooked(!isBooked)}
                     className={`flex h-11 items-center justify-center rounded-lg border text-xs font-bold transition-all duration-300 ${
                       isUserSpot && isBooked
-                        ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105 cursor-pointer"
+                        ? "border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/20 scale-105 cursor-pointer"
                         : isUserSpot && !isBooked
-                        ? "border-dashed border-primary/60 bg-primary/10 text-primary animate-pulse hover:bg-primary/20 cursor-pointer"
-                        : "border-white/10 bg-white/[0.03] text-white/70 cursor-default"
+                        ? "border-dashed border-emerald-500 bg-emerald-50 text-emerald-700 animate-pulse hover:bg-emerald-100 cursor-pointer"
+                        : "border-slate-200 bg-white text-slate-700 shadow-xs cursor-default"
                     }`}
                   >
                     {isUserSpot ? (
@@ -128,18 +128,18 @@ export function ClassBookingBentoCard() {
 
           {/* Action Row */}
           <div className="flex items-center justify-between gap-4 pt-2">
-            <div className="flex items-center gap-1.5 text-xs text-white/60">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
               <span>Row-level database locks prevent race conditions.</span>
             </div>
 
             <button
               type="button"
               onClick={() => setIsBooked(!isBooked)}
-              className={`shrink-0 rounded-lg px-4 py-2 text-xs font-bold transition-all active:scale-95 cursor-pointer ${
+              className={`shrink-0 rounded-lg px-4 py-2 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm ${
                 isBooked
-                  ? "border border-white/20 bg-white/10 text-white hover:bg-white/20"
-                  : "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110"
+                  ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  : "bg-gradient-to-r from-emerald-500 to-teal-400 text-black hover:brightness-110 shadow-sm shadow-emerald-500/20"
               }`}
             >
               {isBooked ? "Release Spot" : "Claim Spot #12"}
