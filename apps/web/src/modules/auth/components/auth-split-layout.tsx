@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { Dumbbell } from "lucide-react";
 
 export function AuthSplitLayout({
   eyebrow,
@@ -10,29 +12,81 @@ export function AuthSplitLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-sidebar p-10 text-sidebar-foreground lg:flex">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_var(--primary)_0%,_transparent_45%)] opacity-20" />
-        <span className="relative font-heading text-lg font-semibold tracking-tight">
-          FitCore
-        </span>
-        <div className="relative space-y-3">
-          <p className="text-sm font-medium uppercase tracking-widest text-primary">
+    <div className="relative flex min-h-screen w-full bg-black text-white selection:bg-emerald-500 selection:text-black">
+      {/* LEFT SHOWCASE COLUMN (Desktop) */}
+      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden border-r border-white/[0.08] bg-[#07090e] p-12 lg:flex xl:p-16">
+        {/* Ambient Dark Emerald Glow */}
+        <div
+          className="pointer-events-none absolute -top-24 -left-24 h-[500px] w-[500px] rounded-full bg-emerald-500/15 blur-[140px]"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute -bottom-24 -right-24 h-[400px] w-[400px] rounded-full bg-teal-500/10 blur-[130px]"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] opacity-40"
+          aria-hidden="true"
+        />
+
+        {/* Top: Brand Logo */}
+        <div className="relative z-10">
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2.5 transition-transform hover:scale-[1.02]"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-black shadow-md shadow-emerald-500/30">
+              <Dumbbell className="h-5 w-5 stroke-[2.2]" />
+            </div>
+            <span className="font-heading text-lg font-bold tracking-tight text-white">
+              FitCore
+            </span>
+          </Link>
+        </div>
+
+        {/* Center: Eyebrow + Headline (Clean & focused) */}
+        <div className="relative z-10 space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
             {eyebrow}
           </p>
-          <h1 className="max-w-sm font-heading text-4xl font-semibold leading-tight tracking-tight">
+          <h1 className="max-w-md font-heading text-3xl font-semibold leading-tight tracking-tight text-white lg:text-4xl">
             {headline}
           </h1>
         </div>
-        <p className="relative text-xs text-sidebar-foreground/60">
-          Gym management, end to end.
-        </p>
+
+        {/* Bottom: Clean minimalist note */}
+        <div className="relative z-10">
+          <p className="text-xs text-zinc-500">
+            Gym management, end to end.
+          </p>
+        </div>
       </div>
-      <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-1/2">
-        <div className="w-full max-w-sm animate-in fade-in duration-500">
+
+      {/* RIGHT FORM CONTAINER */}
+      <div className="relative flex w-full flex-col items-center justify-center px-6 py-12 lg:w-1/2">
+        {/* Subtle glow */}
+        <div
+          className="pointer-events-none absolute h-[400px] w-[400px] rounded-full bg-emerald-500/5 blur-[120px]"
+          aria-hidden="true"
+        />
+
+        {/* Mobile Header */}
+        <div className="mb-8 flex w-full max-w-sm items-center justify-between lg:hidden">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-black">
+              <Dumbbell className="h-4 w-4" />
+            </div>
+            <span className="font-heading font-bold text-white">FitCore</span>
+          </Link>
+        </div>
+
+        {/* Form Container */}
+        <div className="relative z-10 w-full max-w-sm animate-in fade-in duration-500">
           {children}
         </div>
       </div>
     </div>
   );
 }
+
+

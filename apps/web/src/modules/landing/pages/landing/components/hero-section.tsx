@@ -1,12 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Sparkles, Activity } from "lucide-react";
 import { heroStyles as styles } from "./hero-section.styles";
 
 export function HeroSection() {
   return (
     <section className={styles.section}>
-      {/* Background Hero Image - Right anchored and shifted slightly left */}
+      {/* Soft ambient background radial glow */}
+      <div className={styles.ambientGlow} aria-hidden="true" />
+
+      {/* Background Hero Image */}
       <div className={styles.imageContainer} aria-hidden="true">
         <Image
           src="/hero-img.png"
@@ -16,53 +21,81 @@ export function HeroSection() {
           sizes="(max-width: 1024px) 100vw, 60vw"
           className={styles.backgroundImage}
         />
-        {/* Soft edge blend into the black left background */}
+        {/* Soft edge blend into the dark left background */}
         <div className={styles.imageFade} />
       </div>
 
-      {/* Dark gradient overlay for text readability on mobile and left side */}
+      {/* Dark gradient overlay */}
       <div className={styles.overlay} aria-hidden="true" />
 
-      {/* Smooth bottom fade into next dark section */}
+      {/* Smooth bottom fade into next section */}
       <div
-        className="pointer-events-none absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-black via-black/70 to-transparent z-10"
+        className="pointer-events-none absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black via-black/80 to-transparent z-10"
         aria-hidden="true"
       />
-
 
       {/* Hero Content */}
       <div className={styles.inner}>
         <div className={styles.content}>
+          {/* Eyebrow Beacon Badge */}
+          <div className={`${styles.badge} animate-in fade-in slide-in-from-bottom-3 duration-500`}>
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            <span>NEXT-GEN GYM & PERFORMANCE HUB</span>
+          </div>
+
           <h1
             className={`${styles.headline} animate-in fade-in slide-in-from-bottom-4 duration-700`}
           >
-            Transform Your Body
+            Transform Your Body.
             <br />
-            Empower Your Mind
+            <span className={styles.headlineGradient}>Empower Your Mind.</span>
           </h1>
 
           <p
             className={`${styles.subhead} animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 [animation-fill-mode:backwards]`}
           >
-            Achieve your fitness goals with a smarter way to manage your
-            training and progress.
+            Achieve peak physical performance with smart turnstile telemetry,
+            sub-second class booking, and intelligent workout progression.
           </p>
 
+          {/* Action CTAs */}
+          <div
+            className={`${styles.actions} animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 [animation-fill-mode:backwards]`}
+          >
+            <Link href="/signup" className={styles.primaryBtn}>
+              <span>Start Free Today</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href="#pricing" className={styles.secondaryBtn}>
+              <span>Explore Memberships</span>
+            </Link>
+          </div>
+
+          {/* Live Floor Pulse Chip */}
+          <div className={styles.pulsePill}>
+            <Activity className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span>42 Athletes active right now · 99.8% Turnstile QR unlock rate</span>
+          </div>
+
+          {/* Stats Bar */}
           <div
             className={`${styles.stats} animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 [animation-fill-mode:backwards]`}
           >
             <div className={styles.statItem}>
               <span className={styles.statValue}>400k+</span>
-              <span className={styles.statLabel}>People trust with us</span>
+              <span className={styles.statLabel}>Workouts logged & tracked</span>
             </div>
             <div className={styles.statItem}>
-              <span className={styles.statValue}>4.9</span>
-              <span className={styles.statLabel}>Reviews from clients</span>
+              <span className={styles.statValue}>4.9 ★</span>
+              <span className={styles.statLabel}>Member satisfaction rating</span>
             </div>
             <div className={styles.statItem}>
-              <span className={styles.statValue}>10+</span>
+              <span className={styles.statValue}>100%</span>
               <span className={styles.statLabel}>
-                Over 10 years of training experience
+                Frictionless optical QR entry
               </span>
             </div>
           </div>

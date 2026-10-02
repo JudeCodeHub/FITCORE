@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthSplitLayout } from "@/modules/auth/components/auth-split-layout";
 import { ApiError } from "@/shared/api-client/http";
 import { useAuth } from "@/shared/auth/auth-context";
 import { ROLE_HOME } from "@/lib/nav-config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { signupStyles as styles } from "./signup.styles";
 
 export function SignupPage() {
@@ -19,6 +17,7 @@ export function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,48 +50,89 @@ export function SignupPage() {
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert
+          variant="destructive"
+          className="mb-4 border-red-500/30 bg-red-950/40 text-red-300"
+        >
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.field}>
-          <Label htmlFor="name">Full name</Label>
-          <Input
-            id="name"
-            required
-            autoComplete="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <label htmlFor="name" className={styles.label}>
+            Full name
+          </label>
+          <div className={styles.inputWrap}>
+            <User className={styles.inputIcon} />
+            <input
+              id="name"
+              type="text"
+              required
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={styles.input}
+            />
+          </div>
         </div>
+
         <div className={styles.field}>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <label htmlFor="email" className={styles.label}>
+            Email address
+          </label>
+          <div className={styles.inputWrap}>
+            <Mail className={styles.inputIcon} />
+            <input
+              id="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={styles.input}
+            />
+          </div>
         </div>
+
         <div className={styles.field}>
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <label htmlFor="password" className={styles.label}>
+            Password
+          </label>
+          <div className={styles.inputWrap}>
+            <Lock className={styles.inputIcon} />
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.inputPassword}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className={styles.togglePassword}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Creating account…" : "Sign up"}
-        </Button>
+
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={isSubmitting}
+        >
+          <span>{isSubmitting ? "Creating account…" : "Sign up"}</span>
+        </button>
       </form>
 
       <p className={styles.footer}>
@@ -104,3 +144,4 @@ export function SignupPage() {
     </AuthSplitLayout>
   );
 }
+
