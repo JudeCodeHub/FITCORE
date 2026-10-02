@@ -49,10 +49,11 @@ export function LoginPage() {
       {error && (
         <Alert
           variant="destructive"
-          className="mb-4 border-red-500/30 bg-red-950/40 text-red-300"
+          className="mb-4 border-red-200 bg-red-50 text-red-700"
         >
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+
       )}
 
       <form onSubmit={handleSubmit} className={styles.form}>

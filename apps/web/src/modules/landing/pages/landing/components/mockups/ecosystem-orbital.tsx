@@ -114,7 +114,7 @@ export function EcosystemOrbital() {
           cx="200"
           cy="200"
           r="182"
-          stroke="rgba(255, 255, 255, 0.05)"
+          stroke="rgba(0, 0, 0, 0.06)"
           strokeWidth="1"
           strokeDasharray="4 6"
         />
@@ -124,7 +124,7 @@ export function EcosystemOrbital() {
           cx="200"
           cy="200"
           r="148"
-          stroke="rgba(255, 255, 255, 0.08)"
+          stroke="rgba(0, 0, 0, 0.08)"
           strokeWidth="1"
         />
 
@@ -133,7 +133,7 @@ export function EcosystemOrbital() {
           cx="200"
           cy="200"
           r="86"
-          stroke="rgba(255, 255, 255, 0.07)"
+          stroke="rgba(0, 0, 0, 0.08)"
           strokeWidth="1"
         />
 
@@ -151,7 +151,7 @@ export function EcosystemOrbital() {
               stroke={
                 isActive
                   ? "var(--primary)"
-                  : "rgba(255, 255, 255, 0.08)"
+                  : "rgba(0, 0, 0, 0.08)"
               }
               strokeWidth={isActive ? 1.5 : 1}
               strokeDasharray={isActive ? "none" : "3 3"}
@@ -161,25 +161,25 @@ export function EcosystemOrbital() {
         })}
 
         {/* Faint ambient orbit sparkle dots */}
-        <circle cx="200" cy="18" r="1.5" fill="rgba(255, 255, 255, 0.3)" />
-        <circle cx="340" cy="90" r="1.5" fill="rgba(255, 255, 255, 0.2)" />
-        <circle cx="375" cy="200" r="1.5" fill="rgba(255, 255, 255, 0.3)" />
-        <circle cx="320" cy="320" r="1.5" fill="rgba(255, 255, 255, 0.2)" />
-        <circle cx="200" cy="382" r="1.5" fill="rgba(255, 255, 255, 0.3)" />
-        <circle cx="75" cy="315" r="1.5" fill="rgba(255, 255, 255, 0.2)" />
-        <circle cx="25" cy="200" r="1.5" fill="rgba(255, 255, 255, 0.3)" />
-        <circle cx="70" cy="85" r="1.5" fill="rgba(255, 255, 255, 0.2)" />
+        <circle cx="200" cy="18" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
+        <circle cx="340" cy="90" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
+        <circle cx="375" cy="200" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
+        <circle cx="320" cy="320" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
+        <circle cx="200" cy="382" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
+        <circle cx="75" cy="315" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
+        <circle cx="25" cy="200" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
+        <circle cx="70" cy="85" r="1.5" fill="rgba(0, 0, 0, 0.15)" />
       </svg>
 
       {/* Center Core Hub Card */}
       <div className="relative z-10 flex flex-col items-center">
-        <div className="group relative flex h-24 w-24 items-center justify-center rounded-2xl border border-white/15 bg-zinc-900/90 shadow-2xl shadow-black/80 backdrop-blur-md transition-all duration-300 hover:border-primary/50 sm:h-28 sm:w-28">
-          <div className="absolute inset-0 rounded-2xl bg-primary/5 transition-opacity group-hover:opacity-100" />
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary transition-transform group-hover:scale-105 sm:h-14 sm:w-14">
-            <Dumbbell className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
+        <div className="group relative flex h-24 w-24 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 backdrop-blur-md transition-all duration-300 hover:border-emerald-500 sm:h-28 sm:w-28">
+          <div className="absolute inset-0 rounded-2xl bg-emerald-500/5 transition-opacity group-hover:opacity-100" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 transition-transform group-hover:scale-105 sm:h-14 sm:w-14">
+            <Dumbbell className="h-6 w-6 text-emerald-600 sm:h-7 sm:w-7" />
           </div>
         </div>
-        <span className="mt-2.5 text-[10px] font-semibold tracking-widest text-white/50 uppercase">
+        <span className="mt-2.5 text-[10px] font-semibold tracking-widest text-slate-500 uppercase">
           FitCore Hub
         </span>
       </div>
@@ -199,10 +199,10 @@ export function EcosystemOrbital() {
           >
             <div
               className={cn(
-                "group flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border bg-zinc-900/90 shadow-xl backdrop-blur-md transition-all duration-300 sm:h-14 sm:w-14",
+                "group flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border bg-white shadow-md shadow-slate-100 backdrop-blur-md transition-all duration-300 sm:h-14 sm:w-14",
                 isActive
-                  ? "scale-110 border-primary bg-zinc-800 text-primary shadow-primary/20"
-                  : "border-white/10 text-white/80 hover:scale-105 hover:border-white/30 hover:text-white",
+                  ? "scale-110 border-emerald-500 bg-emerald-50 text-emerald-700 shadow-emerald-500/20"
+                  : "border-slate-200 text-slate-700 hover:scale-105 hover:border-slate-300 hover:text-slate-900",
               )}
             >
               <Icon className="h-5 w-5 transition-transform group-hover:scale-110 sm:h-6 sm:w-6" />
@@ -211,7 +211,7 @@ export function EcosystemOrbital() {
             <span
               className={cn(
                 "mt-1.5 text-[10px] font-medium tracking-tight transition-colors duration-200 sm:text-[11px]",
-                isActive ? "text-primary font-semibold" : "text-white/60",
+                isActive ? "text-emerald-700 font-semibold" : "text-slate-600",
               )}
             >
               {node.label}
