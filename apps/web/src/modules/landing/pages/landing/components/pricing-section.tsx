@@ -7,9 +7,6 @@ import {
   Sparkles,
   Flame,
   Crown,
-  ShieldCheck,
-  Snowflake,
-  Zap,
   ChevronDown,
   ArrowRight,
 } from "lucide-react";
@@ -213,45 +210,6 @@ export function PricingSection() {
             </div>
           );
         })}
-      </div>
-
-      {/* Trust & Guarantee Grid */}
-      <div className={styles.trustGrid}>
-        <div className={styles.trustItem}>
-          <div className={styles.trustIconWrap}>
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div>
-            <h4 className={styles.trustTitle}>30-Day Training Guarantee</h4>
-            <p className={styles.trustDesc}>
-              Experience the floor risk-free. Cancel within your first 30 days for a full refund, zero questions asked.
-            </p>
-          </div>
-        </div>
-
-        <div className={styles.trustItem}>
-          <div className={styles.trustIconWrap}>
-            <Snowflake className="h-5 w-5" />
-          </div>
-          <div>
-            <h4 className={styles.trustTitle}>1-Tap Vacation Freeze</h4>
-            <p className={styles.trustDesc}>
-              Going away? Pause billing directly in the app. $0 charged while traveling, auto-resumes on return.
-            </p>
-          </div>
-        </div>
-
-        <div className={styles.trustItem}>
-          <div className={styles.trustIconWrap}>
-            <Zap className="h-5 w-5" />
-          </div>
-          <div>
-            <h4 className={styles.trustTitle}>Zero Hidden Fees</h4>
-            <p className={styles.trustDesc}>
-              No initiation charges, no locker fees, and no surprise cancellation hurdles. What you see is what you pay.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Frequently Asked Questions */}

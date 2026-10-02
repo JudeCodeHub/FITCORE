@@ -66,13 +66,6 @@ export const pricingStyles = {
         : "border border-white/20 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 active:scale-[0.98]"
     }`,
 
-  // Trust Badges Grid
-  trustGrid: "mt-20 sm:mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto border-t border-white/10 pt-12 sm:pt-16",
-  trustItem: "flex items-start gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-5 backdrop-blur-sm",
-  trustIconWrap: "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary",
-  trustTitle: "font-heading text-sm font-bold text-white",
-  trustDesc: "mt-1 text-xs text-white/60 leading-relaxed",
-
   // FAQ Section
   faqWrap: "mt-24 sm:mt-32 max-w-3xl mx-auto",
   faqHeading: "text-center mb-10 sm:mb-12",
