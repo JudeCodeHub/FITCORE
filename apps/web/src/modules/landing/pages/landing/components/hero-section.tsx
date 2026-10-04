@@ -12,27 +12,25 @@ export function HeroSection() {
       <div className={styles.ambientGlow} aria-hidden="true" />
 
       {/* Background Hero Image */}
-      <div className={styles.imageContainer} aria-hidden="true">
+      <div
+        className={styles.imageContainer}
+        style={{
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent 0%, transparent 15%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.85) 50%, black 65%)",
+          maskImage:
+            "linear-gradient(to right, transparent 0%, transparent 15%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.85) 50%, black 65%)",
+        }}
+        aria-hidden="true"
+      >
         <Image
           src="/hero-img.png"
           alt="FitCore Fitness Training"
           fill
           priority
-          sizes="(max-width: 1024px) 100vw, 60vw"
+          sizes="100vw"
           className={styles.backgroundImage}
         />
-        {/* Soft edge blend into the dark left background */}
-        <div className={styles.imageFade} />
       </div>
-
-      {/* Dark gradient overlay */}
-      <div className={styles.overlay} aria-hidden="true" />
-
-      {/* Smooth bottom fade into next section */}
-      <div
-        className="pointer-events-none absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#fafafc] via-[#fafafc]/80 to-transparent z-10"
-        aria-hidden="true"
-      />
 
 
       {/* Hero Content */}
