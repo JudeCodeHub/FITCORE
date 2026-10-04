@@ -4,13 +4,9 @@ export const heroStyles = {
   ambientGlow:
     "pointer-events-none absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-emerald-500/10 blur-[140px] z-0",
   imageContainer:
-    "absolute top-0 right-0 h-full w-full lg:w-[64%] xl:w-[60%] overflow-hidden pointer-events-none z-0",
+    "absolute inset-0 h-full w-full overflow-hidden pointer-events-none z-0",
   backgroundImage:
-    "object-cover object-[75%_15%] lg:scale-[1.08] lg:-translate-x-8 xl:scale-[1.1] xl:-translate-x-14 transition-transform duration-700 opacity-80",
-  imageFade:
-    "pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#fafafc] via-[#fafafc]/70 to-transparent lg:bg-gradient-to-r lg:from-[#fafafc] lg:via-[#fafafc]/60 lg:to-transparent",
-  overlay:
-    "pointer-events-none absolute inset-0 bg-gradient-to-t from-[#fafafc] via-[#fafafc]/80 to-transparent lg:bg-gradient-to-r lg:from-[#fafafc] lg:via-[#fafafc]/75 lg:to-transparent z-0",
+    "object-cover object-[75%_15%] transition-transform duration-700",
   inner:
     "relative z-10 mx-auto w-full max-w-screen-2xl px-6 sm:px-8 lg:px-12",
   content: "max-w-xl lg:max-w-2xl",
@@ -29,7 +25,7 @@ export const heroStyles = {
   secondaryBtn:
     "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98]",
   pulsePill:
-    "mt-7 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 backdrop-blur-md px-3.5 py-2 text-xs text-slate-700 shadow-xs",
+    "mt-7 inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-50/70 px-3.5 py-2 text-xs font-medium text-emerald-900 shadow-xs",
   stats:
     "mt-10 sm:mt-12 flex flex-wrap items-start gap-8 sm:gap-14 pt-8 border-t border-slate-200",
   statItem: "flex flex-col",
