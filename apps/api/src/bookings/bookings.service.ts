@@ -6,6 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Prisma } from '../generated/prisma/client.js';
 import { MailerService } from '../mailer/mailer.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
@@ -118,6 +119,67 @@ export class BookingsService {
         message: `You're booked for ${cls.name} on ${cls.startTime.toLocaleString()}.`,
       });
     }
+  }
+
+  /** The in-app notification and claim commit together. Email remains a
+   * best-effort local stub until the mail-adapter step; replay cannot create
+   * a second in-app reminder for the same booking. */
+  @Cron(CronExpression.EVERY_HOUR)
+  async sendClassReminders(now = new Date()) {
+    const until = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const upcoming = await this.prisma.booking.findMany({
+      where: {
+        status: 'BOOKED',
+        reminderSentAt: null,
+        class: { is: { startTime: { gt: now, lte: until } } },
+      },
+      include: {
+        class: { select: { name: true, startTime: true } },
+        user: { select: { id: true, email: true } },
+      },
+      orderBy: { class: { startTime: 'asc' } },
+      take: 200,
+    });
+    let sent = 0;
+    for (const booking of upcoming) {
+      try {
+        const claimed = await this.prisma.$transaction(async (tx) => {
+          const updated = await tx.booking.updateMany({
+            where: {
+              id: booking.id,
+              status: 'BOOKED',
+              reminderSentAt: null,
+              class: { is: { startTime: { gt: now, lte: until } } },
+            },
+            data: { reminderSentAt: now },
+          });
+          if (updated.count === 0) return false;
+          await tx.notification.create({
+            data: {
+              userId: booking.user.id,
+              type: 'CLASS_REMINDER',
+              title: 'Class starting soon',
+              message: `${booking.class.name} starts at ${booking.class.startTime.toLocaleString()}.`,
+            },
+          });
+          return true;
+        });
+        if (!claimed) continue;
+        sent++;
+        try {
+          this.mailer.sendClassReminderEmail(
+            booking.user.email,
+            booking.class.name,
+            booking.class.startTime,
+          );
+        } catch (error) {
+          this.logger.warn(`Failed to send class reminder email for booking ${booking.id}: ${String(error)}`);
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to create class reminder for booking ${booking.id}: ${String(error)}`);
+      }
+    }
+    return { checked: upcoming.length, sent };
   }
 
   async findByClass(classId: string) {
