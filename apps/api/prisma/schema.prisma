@@ -200,8 +200,10 @@ model Booking {
   status      BookingStatus @default(BOOKED)
   bookedAt    DateTime      @default(now())
   cancelledAt DateTime?
+  reminderSentAt DateTime?
   review      Review?
 
+  @@index([status, reminderSentAt])
   @@index([classId])
   @@index([userId])
 }

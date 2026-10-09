@@ -33,6 +33,12 @@ export class MailerService {
     );
   }
 
+  sendClassReminderEmail(to: string, className: string, startTime: Date) {
+    this.logger.log(
+      `[stub email] Class reminder for ${to}: ${className} starts at ${startTime.toISOString()}`,
+    );
+  }
+
   sendWaitlistedEmail(to: string, className: string, position: number) {
     this.logger.log(
       `[stub email] Waitlisted for ${to}: ${className}, position #${position}`,
