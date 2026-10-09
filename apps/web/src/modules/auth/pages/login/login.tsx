@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthSplitLayout } from "@/modules/auth/components/auth-split-layout";
 import { ApiError } from "@/shared/api-client/http";
+import { authService } from "@/modules/auth/services/auth.service";
 import { useAuth } from "@/shared/auth/auth-context";
 import { ROLE_HOME } from "@/lib/nav-config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,21 +19,36 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setNeedsVerification(false);
+    setResendMessage(null);
     setIsSubmitting(true);
     try {
       const user = await login(email, password);
       router.push(ROLE_HOME[user.role]);
     } catch (err) {
+      setNeedsVerification(err instanceof ApiError && err.status === 403);
       setError(
         err instanceof ApiError ? err.message : "Something went wrong",
       );
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function resendVerification() {
+    try {
+      const result = await authService.resendVerification(email);
+      setResendMessage(result.message + " In local development, check the API console.");
+      setNeedsVerification(false);
+    } catch {
+      setResendMessage("Could not request a new link. Try again.");
     }
   }
 
@@ -55,6 +71,14 @@ export function LoginPage() {
         </Alert>
 
       )}
+
+      {needsVerification && (
+        <button type="button" onClick={resendVerification}
+          className="mb-4 text-sm font-semibold text-emerald-700 hover:underline">
+          Send a new verification link
+        </button>
+      )}
+      {resendMessage && <p role="status" className="mb-4 text-sm text-slate-700">{resendMessage}</p>}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.field}>

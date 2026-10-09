@@ -21,7 +21,8 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "test:concurrency": "node scripts/test-booking-concurrency.mjs",
-    "seed:exercises": "node scripts/seed-exercises.mjs"
+    "seed:exercises": "node scripts/seed-exercises.mjs",
+    "bootstrap:admin": "prisma generate && nest build && node scripts/bootstrap-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
