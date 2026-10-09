@@ -10,6 +10,9 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { RequestUser } from '../auth/guards/jwt-auth.guard.js';
+import { CompleteMaintenanceDto } from './dto/complete-maintenance.dto.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
@@ -43,6 +46,16 @@ export class EquipmentController {
   @Roles('ADMIN')
   update(@Param('id') id: string, @Body() dto: UpdateEquipmentDto) {
     return this.equipmentService.update(id, dto);
+  }
+
+  @Get(':id/maintenance-history')
+  history(@Param('id') id: string) {
+    return this.equipmentService.maintenanceHistory(id);
+  }
+
+  @Post(':id/maintenance-completions')
+  completeMaintenance(@Param('id') id: string, @CurrentUser() user: RequestUser, @Body() dto: CompleteMaintenanceDto) {
+    return this.equipmentService.completeMaintenance(id, user.sub, dto.notes);
   }
 
   @Delete(':id')

@@ -47,12 +47,15 @@ export function PlanFormDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
-    setError(null);
-    setName(editingPlan?.name ?? "");
-    setPrice(editingPlan?.price ?? "");
-    setDuration(editingPlan?.duration ?? "MONTHLY");
-    setFeaturesText(editingPlan?.features.join(", ") ?? "");
+    const timer = setTimeout(() => {
+      if (!open) return;
+      setError(null);
+      setName(editingPlan?.name ?? "");
+      setPrice(editingPlan?.price ?? "");
+      setDuration(editingPlan?.duration ?? "MONTHLY");
+      setFeaturesText(editingPlan?.features.join(", ") ?? "");
+    }, 0);
+    return () => clearTimeout(timer);
   }, [open, editingPlan]);
 
   async function handleSubmit(event: FormEvent) {

@@ -37,7 +37,10 @@ export function MyBookingsPage() {
   }
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function cancelBooking(id: string) {

@@ -67,7 +67,7 @@ export class AuthService {
       },
     });
 
-    this.mailer.sendVerificationEmail(user.email, verificationToken);
+    await this.mailer.sendVerificationEmail(user.email, verificationToken);
 
     return { message: 'Account created. Verify your email before signing in.' };
   }
@@ -83,7 +83,7 @@ export class AuthService {
           verificationTokenExpiresAt: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
         },
       });
-      this.mailer.sendVerificationEmail(email, verificationToken);
+      await this.mailer.sendVerificationEmail(email, verificationToken);
     }
     return { message: 'If this account needs verification, a new link has been sent.' };
   }
@@ -151,7 +151,7 @@ export class AuthService {
           resetTokenExpiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
         },
       });
-      this.mailer.sendPasswordResetEmail(user.email, resetToken);
+      await this.mailer.sendPasswordResetEmail(user.email, resetToken);
     }
 
     return {
@@ -301,7 +301,7 @@ export class AuthService {
       },
     });
 
-    this.mailer.sendStaffInviteEmail(dto.email, token, dto.role);
+    await this.mailer.sendStaffInviteEmail(dto.email, token, dto.role);
 
     return { message: 'Invite sent' };
   }

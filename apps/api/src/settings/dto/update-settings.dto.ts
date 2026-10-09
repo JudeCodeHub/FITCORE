@@ -44,4 +44,10 @@ export class UpdateSettingsDto {
   @Min(0)
   @Max(365)
   cancellationNoticeDays?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(30)
+  renewalGraceDays?: number;
 }

@@ -33,6 +33,7 @@ export interface IGymSettings {
   branches: string[];
   freezeDaysPerYearLimit: number;
   cancellationNoticeDays: number;
+  renewalGraceDays: number;
   updatedAt: string;
   updatedById: string | null;
 }
@@ -44,4 +45,5 @@ export interface IUpdateSettingsInput {
   branches?: string[];
   freezeDaysPerYearLimit?: number;
   cancellationNoticeDays?: number;
+  renewalGraceDays?: number;
 }

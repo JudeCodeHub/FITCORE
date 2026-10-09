@@ -4,12 +4,14 @@ import { PaymentsService } from './payments.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { MailerService } from '../mailer/mailer.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
+import { SettingsService } from '../settings/settings.service.js';
 
 describe('PaymentsService - Webhook verification, idempotency & retry logic', () => {
   let service: PaymentsService;
   let mockPrisma: any;
   let mockMailer: any;
   let mockNotifications: any;
+  let mockSettings: any;
 
   beforeEach(() => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_12345';
@@ -54,11 +56,13 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
     mockNotifications = {
       create: vi.fn(),
     };
+    mockSettings = { getPolicy: vi.fn().mockResolvedValue({ renewalGraceDays: 0 }) };
 
     service = new PaymentsService(
       mockPrisma as unknown as PrismaService,
       mockMailer as unknown as MailerService,
       mockNotifications as unknown as NotificationsService,
+      mockSettings as unknown as SettingsService,
     );
   });
 
@@ -246,6 +250,23 @@ describe('PaymentsService - Webhook verification, idempotency & retry logic', ()
           userId: 'user-1',
           type: 'PAYMENT_ALERT',
         }),
+      );
+    });
+
+    it('keeps membership active while renewal grace is open', async () => {
+      mockSettings.getPolicy.mockResolvedValue({ renewalGraceDays: 3 });
+      mockPrisma.membership.findUnique.mockResolvedValue({
+        id: 'mem-1', endDate: new Date(Date.now() - 86_400_000),
+        user: { id: 'user-1', email: 'member@test.com' }, plan: { name: 'Pro' },
+      });
+      await service.handleInvoicePaymentFailed({
+        id: 'in_grace', subscription: 'sub_123', amount_due: 4900,
+        next_payment_attempt: null,
+      } as any);
+      expect(mockPrisma.membership.update).not.toHaveBeenCalled();
+      expect(mockMailer.sendMembershipSuspendedEmail).not.toHaveBeenCalled();
+      expect(mockNotifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Payment Failed - Grace Period' }),
       );
     });
 

@@ -36,19 +36,22 @@ export function TrainerMemberWorkoutPlansPage() {
   }
 
   useEffect(() => {
-    setError(null);
-    Promise.all([
-      refresh(),
-      exercisesService.listAll().then(setExercises),
-      trainerProfilesService.listMyMembers().then((members) => {
-        setMemberName(members.find((m) => m.id === memberId)?.name ?? null);
-      }),
-    ])
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Failed to load"),
-      )
-      .finally(() => setIsLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const timer = setTimeout(() => {
+      setError(null);
+      Promise.all([
+        refresh(),
+        exercisesService.listAll().then(setExercises),
+        trainerProfilesService.listMyMembers().then((members) => {
+          setMemberName(members.find((m) => m.id === memberId)?.name ?? null);
+        }),
+      ])
+        .catch((err) =>
+          setError(err instanceof ApiError ? err.message : "Failed to load"),
+        )
+        .finally(() => setIsLoading(false));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, 0);
+    return () => clearTimeout(timer);
   }, [memberId]);
 
   function openCreate() {

@@ -23,6 +23,12 @@ export const equipmentService = {
     });
   },
 
+  completeMaintenance(id: string, notes?: string) {
+    return apiFetch(`/equipment/${id}/maintenance-completions`, {
+      method: 'POST', body: JSON.stringify({ notes }),
+    });
+  },
+
   remove(id: string) {
     return apiFetch<void>(`/equipment/${id}`, { method: "DELETE" });
   },

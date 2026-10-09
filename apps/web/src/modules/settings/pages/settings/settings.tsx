@@ -18,6 +18,7 @@ export function SettingsPage() {
   const [branchesText, setBranchesText] = useState("");
   const [freezeDaysPerYearLimit, setFreezeDaysPerYearLimit] = useState(0);
   const [cancellationNoticeDays, setCancellationNoticeDays] = useState(0);
+  const [renewalGraceDays, setRenewalGraceDays] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export function SettingsPage() {
         setBranchesText(settings.branches.join(", "));
         setFreezeDaysPerYearLimit(settings.freezeDaysPerYearLimit);
         setCancellationNoticeDays(settings.cancellationNoticeDays);
+        setRenewalGraceDays(settings.renewalGraceDays);
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -53,6 +55,7 @@ export function SettingsPage() {
           .filter(Boolean),
         freezeDaysPerYearLimit,
         cancellationNoticeDays,
+        renewalGraceDays,
       });
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2000);
@@ -163,6 +166,11 @@ export function SettingsPage() {
               <p className={styles.hint}>
                 0 means members can cancel an active membership any time.
               </p>
+            </div>
+            <div className={styles.field}>
+              <Label htmlFor="renewal-grace">Renewal grace period (days)</Label>
+              <Input id="renewal-grace" type="number" min={0} max={30} value={renewalGraceDays} onChange={(e) => setRenewalGraceDays(Number(e.target.value))} />
+              <p className={styles.hint}>0 suspends access when the membership ends; a paid renewal restores it.</p>
             </div>
           </CardContent>
         </Card>

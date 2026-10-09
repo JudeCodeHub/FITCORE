@@ -1,6 +1,9 @@
 import {
   IsDateString,
   IsIn,
+  IsInt,
+  Max,
+  Min,
   IsOptional,
   IsString,
   MaxLength,
@@ -34,4 +37,14 @@ export class CreateEquipmentDto {
   @IsString()
   @MaxLength(1000)
   notes?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(3650)
+  maintenanceIntervalDays?: number;
+
+  @IsOptional()
+  @IsDateString()
+  nextMaintenanceAt?: string;
 }

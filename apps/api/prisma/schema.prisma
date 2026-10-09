@@ -55,6 +55,7 @@ model User {
   personalRecords             PersonalRecord[]
   reportedTickets             MaintenanceTicket[] @relation("MaintenanceTicketReporter")
   resolvedTickets             MaintenanceTicket[] @relation("MaintenanceTicketResolver")
+  maintenanceCompletions       EquipmentMaintenanceCompletion[]
   notifications               Notification[]
   reviews                     Review[]
   submittedComplaints         Complaint[] @relation("ComplaintSubmitter")
@@ -404,8 +405,23 @@ model Equipment {
   updatedAt    DateTime        @updatedAt
 
   maintenanceTickets MaintenanceTicket[]
+  maintenanceIntervalDays Int?
+  nextMaintenanceAt DateTime?
+  maintenanceCompletions EquipmentMaintenanceCompletion[]
 
   @@index([status])
+}
+
+model EquipmentMaintenanceCompletion {
+  id String @id @default(cuid())
+  equipmentId String
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  completedById String
+  completedBy User @relation(fields: [completedById], references: [id])
+  completedAt DateTime @default(now())
+  notes String?
+
+  @@index([equipmentId, completedAt])
 }
 
 enum MaintenanceTicketStatus {
@@ -517,6 +533,7 @@ model GymSettings {
   /// is required, preserving today's unconditional-cancel behavior until
   /// an admin actually configures a policy.
   cancellationNoticeDays Int       @default(0)
+  renewalGraceDays       Int       @default(0)
   updatedAt              DateTime  @updatedAt
   updatedById            String?
   updatedBy              User?     @relation("GymSettingsUpdater", fields: [updatedById], references: [id], onDelete: SetNull)

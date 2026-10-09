@@ -78,7 +78,10 @@ export function MyReviewsPage() {
   }
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function submitClassReview(

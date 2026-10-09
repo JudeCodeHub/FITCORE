@@ -43,4 +43,6 @@ export interface IMemberWithTrainer {
   name: string;
   email: string;
   assignedTrainer: { id: string; name: string } | null;
+  hasOverdueBalance: boolean;
+  overdueBalances: { currency: string; amount: string }[];
 }

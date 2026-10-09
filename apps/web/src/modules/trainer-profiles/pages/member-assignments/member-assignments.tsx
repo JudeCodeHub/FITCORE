@@ -82,6 +82,7 @@ export function MemberAssignmentsPage() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Assigned Trainer</TableHead>
+              <TableHead>Overdue balance</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -109,6 +110,11 @@ export function MemberAssignmentsPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </TableCell>
+                <TableCell className="text-sm">
+                  {member.hasOverdueBalance
+                    ? member.overdueBalances.map((balance) => `${balance.currency} ${balance.amount}`).join(", ")
+                    : "Clear"}
                 </TableCell>
               </TableRow>
             ))}

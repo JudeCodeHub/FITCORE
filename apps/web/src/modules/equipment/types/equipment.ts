@@ -7,6 +7,8 @@ export interface IEquipment {
   purchaseDate: string | null;
   status: EquipmentStatus;
   notes: string | null;
+  maintenanceIntervalDays: number | null;
+  nextMaintenanceAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,4 +19,6 @@ export interface IEquipmentInput {
   purchaseDate?: string;
   status?: EquipmentStatus;
   notes?: string;
+  maintenanceIntervalDays?: number;
+  nextMaintenanceAt?: string;
 }

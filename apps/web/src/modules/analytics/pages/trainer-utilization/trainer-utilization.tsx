@@ -43,12 +43,15 @@ export function TrainerUtilizationPage() {
   }, []);
 
   useEffect(() => {
-    if (!trainerId) return;
-    setIsLoading(true);
-    analyticsService
-      .getTrainerUtilization(trainerId, windowDays)
-      .then(setData)
-      .finally(() => setIsLoading(false));
+    const timer = setTimeout(() => {
+      if (!trainerId) return;
+      setIsLoading(true);
+      analyticsService
+        .getTrainerUtilization(trainerId, windowDays)
+        .then(setData)
+        .finally(() => setIsLoading(false));
+    }, 0);
+    return () => clearTimeout(timer);
   }, [trainerId, windowDays]);
 
   return (

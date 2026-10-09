@@ -70,9 +70,12 @@ export function MaintenanceTicketsPage() {
   }, []);
 
   useEffect(() => {
-    setIsLoading(true);
-    refresh().finally(() => setIsLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const timer = setTimeout(() => {
+      setIsLoading(true);
+      refresh().finally(() => setIsLoading(false));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, 0);
+    return () => clearTimeout(timer);
   }, [filter]);
 
   async function handleStatusChange(

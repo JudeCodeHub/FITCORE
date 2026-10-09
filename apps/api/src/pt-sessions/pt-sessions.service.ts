@@ -80,12 +80,12 @@ export class PtSessionsService {
     });
 
     try {
-      this.mailer.sendPtSessionConfirmationEmail(
+      await this.mailer.sendPtSessionConfirmationEmail(
         member.email,
         trainer.name,
         start,
       );
-      this.mailer.sendPtSessionConfirmationEmail(
+      await this.mailer.sendPtSessionConfirmationEmail(
         trainer.email,
         member.name,
         start,

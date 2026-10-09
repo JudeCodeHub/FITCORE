@@ -35,11 +35,13 @@ export class SettingsService {
   async getPolicy(): Promise<{
     freezeDaysPerYearLimit: number;
     cancellationNoticeDays: number;
+    renewalGraceDays: number;
   }> {
     const settings = await this.get();
     return {
       freezeDaysPerYearLimit: settings.freezeDaysPerYearLimit,
       cancellationNoticeDays: settings.cancellationNoticeDays,
+      renewalGraceDays: settings.renewalGraceDays,
     };
   }
 
@@ -55,6 +57,7 @@ export class SettingsService {
         branches: dto.branches,
         freezeDaysPerYearLimit: dto.freezeDaysPerYearLimit,
         cancellationNoticeDays: dto.cancellationNoticeDays,
+        renewalGraceDays: dto.renewalGraceDays,
         updatedById,
       },
     });
