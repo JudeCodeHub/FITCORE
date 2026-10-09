@@ -24,9 +24,17 @@ export const authService = {
   },
 
   signup(input: ISignupInput) {
-    return apiFetch<AuthResponse>(
+    return apiFetch<{ message: string }>(
       "/auth/signup",
       { method: "POST", body: JSON.stringify(input) },
+      { auth: false },
+    );
+  },
+
+  resendVerification(email: string) {
+    return apiFetch<{ message: string }>(
+      "/auth/resend-verification",
+      { method: "POST", body: JSON.stringify({ email }) },
       { auth: false },
     );
   },

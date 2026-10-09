@@ -5,6 +5,7 @@ import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { PaymentsController } from './payments.controller.js';
 import { PaymentsService } from './payments.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 
 describe('PaymentsController', () => {
   let controller: PaymentsController;
@@ -24,6 +25,7 @@ describe('PaymentsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsController],
       providers: [
+        { provide: PrismaService, useValue: { user: { findUnique: vi.fn() } } },
         {
           provide: PaymentsService,
           useValue: mockPaymentsService,

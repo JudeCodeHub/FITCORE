@@ -43,7 +43,7 @@ export class AuthService {
     private readonly mailer: MailerService,
   ) {}
 
-  async signup(dto: SignupDto, userAgent?: string) {
+  async signup(dto: SignupDto) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -69,7 +69,23 @@ export class AuthService {
 
     this.mailer.sendVerificationEmail(user.email, verificationToken);
 
-    return (await this.issueNewSession(user, userAgent)).response;
+    return { message: 'Account created. Verify your email before signing in.' };
+  }
+
+  async resendVerification(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (user && !user.emailVerified && user.isActive) {
+      const verificationToken = randomBytes(32).toString('hex');
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          verificationToken,
+          verificationTokenExpiresAt: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+        },
+      });
+      this.mailer.sendVerificationEmail(email, verificationToken);
+    }
+    return { message: 'If this account needs verification, a new link has been sent.' };
   }
 
   async verifyEmail(token: string) {
@@ -115,6 +131,9 @@ export class AuthService {
 
     if (!user.isActive) {
       throw new UnauthorizedException('This account has been deactivated');
+    }
+    if (!user.emailVerified) {
+      throw new ForbiddenException('Verify your email before signing in');
     }
 
     return (await this.issueNewSession(user, userAgent)).response;
@@ -219,6 +238,9 @@ export class AuthService {
     }
     if (!user.isActive) {
       throw new UnauthorizedException('This account has been deactivated');
+    }
+    if (!user.emailVerified) {
+      throw new ForbiddenException('Verify your email before signing in');
     }
 
     const result = await this.issueNewSession(user, userAgent);

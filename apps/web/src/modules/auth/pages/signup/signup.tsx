@@ -1,24 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { AuthSplitLayout } from "@/modules/auth/components/auth-split-layout";
 import { ApiError } from "@/shared/api-client/http";
 import { useAuth } from "@/shared/auth/auth-context";
-import { ROLE_HOME } from "@/lib/nav-config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { signupStyles as styles } from "./signup.styles";
 
 export function SignupPage() {
   const { signup } = useAuth();
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [created, setCreated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
@@ -26,8 +24,8 @@ export function SignupPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const user = await signup(name, email, password);
-      router.push(ROLE_HOME[user.role]);
+      await signup(name, email, password);
+      setCreated(true);
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : "Something went wrong",
@@ -59,7 +57,13 @@ export function SignupPage() {
       )}
 
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      {created ? (
+        <div role="status" className="space-y-3 text-sm text-slate-700">
+          <p>Account created. Verify your email before signing in.</p>
+          <p>For local development, the verification link appears in the API console.</p>
+          <Link href="/login" className={styles.footerLink}>Go to login</Link>
+        </div>
+      ) : <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.field}>
           <label htmlFor="name" className={styles.label}>
             Full name
@@ -134,7 +138,7 @@ export function SignupPage() {
         >
           <span>{isSubmitting ? "Creating account…" : "Sign up"}</span>
         </button>
-      </form>
+      </form>}
 
       <p className={styles.footer}>
         Already have an account?{" "}

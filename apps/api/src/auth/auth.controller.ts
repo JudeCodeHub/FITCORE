@@ -19,6 +19,7 @@ import { InviteStaffDto } from './dto/invite-staff.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
+import { ResendVerificationDto } from './dto/resend-verification.dto.js';
 import { SignupDto } from './dto/signup.dto.js';
 import { VerifyEmailDto } from './dto/verify-email.dto.js';
 import { JwtAuthGuard, type RequestUser } from './guards/jwt-auth.guard.js';
@@ -29,8 +30,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  signup(@Body() dto: SignupDto, @Headers('user-agent') userAgent?: string) {
-    return this.authService.signup(dto, userAgent);
+  signup(@Body() dto: SignupDto) {
+    return this.authService.signup(dto);
   }
 
   @Post('login')
@@ -52,6 +53,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   logout(@Body() dto: RefreshDto) {
     return this.authService.logout(dto.refreshToken);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  resendVerification(@Body() dto: ResendVerificationDto) {
+    return this.authService.resendVerification(dto.email);
   }
 
   @Post('verify-email')
