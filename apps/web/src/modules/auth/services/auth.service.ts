@@ -31,6 +31,22 @@ export const authService = {
     );
   },
 
+  forgotPassword(email: string) {
+    return apiFetch<{ message: string }>(
+      "/auth/forgot-password",
+      { method: "POST", body: JSON.stringify({ email }) },
+      { auth: false },
+    );
+  },
+
+  resetPassword(token: string, newPassword: string) {
+    return apiFetch<{ message: string }>(
+      "/auth/reset-password",
+      { method: "POST", body: JSON.stringify({ token, newPassword }) },
+      { auth: false },
+    );
+  },
+
   verifyEmail(token: string) {
     return apiFetch<{ message: string }>(
       "/auth/verify-email",
