@@ -15,6 +15,8 @@ import {
 import { MailerService } from '../mailer/mailer.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { SettingsService } from '../settings/settings.service.js';
+import { isPastRenewalGrace } from '../memberships/renewal-grace.js';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
 import { PaymentHistoryQueryDto } from './dto/payment-history-query.dto.js';
 import { RecordWalkInPaymentDto } from './dto/record-walk-in-payment.dto.js';
@@ -82,6 +84,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly mailer: MailerService,
     private readonly notifications: NotificationsService,
+    private readonly settings: SettingsService,
   ) {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     if (stripeKey) {
@@ -604,7 +607,7 @@ export class PaymentsService {
     // 2. Dunning logic: Check if retries remain or if retries are exhausted
     if (nextRetryDate) {
       if (userEmail) {
-        this.mailer.sendPaymentFailedDunningEmail(
+        await this.mailer.sendPaymentFailedDunningEmail(
           userEmail,
           amountDueDecimal,
           attemptCount,
@@ -620,7 +623,16 @@ export class PaymentsService {
         message: `Your payment of $${amountDueDecimal} failed (Attempt #${attemptCount}). Next retry scheduled for ${nextRetryDate.toLocaleDateString()}. Please update your payment method.`,
       });
     } else {
-      // Retries exhausted: expire membership and notify
+      const graceDays = (await this.settings.getPolicy()).renewalGraceDays;
+      const withinGrace = membership?.endDate && !isPastRenewalGrace(membership.endDate, graceDays);
+      if (withinGrace) {
+        await this.notifications.create({
+          userId, type: 'PAYMENT_ALERT', title: 'Payment Failed - Grace Period',
+          message: `Payment of $${amountDueDecimal} failed. Please update your card before your renewal grace period ends.`,
+        });
+        return;
+      }
+      // Retries exhausted and grace elapsed: expire membership and notify
       if (membership) {
         await this.prisma.membership.update({
           where: { id: membership.id },
@@ -629,7 +641,7 @@ export class PaymentsService {
       }
 
       if (userEmail) {
-        this.mailer.sendMembershipSuspendedEmail(
+        await this.mailer.sendMembershipSuspendedEmail(
           userEmail,
           membership?.plan?.name,
         );
@@ -704,11 +716,13 @@ export class PaymentsService {
           (subscription as any).current_period_end * 1000,
         );
       }
-    } else if (
-      subscription.status === 'canceled' ||
-      subscription.status === 'unpaid'
-    ) {
+    } else if (subscription.status === 'canceled') {
       dataToUpdate.status = MembershipStatus.CANCELLED;
+    } else if (subscription.status === 'unpaid') {
+      const graceDays = (await this.settings.getPolicy()).renewalGraceDays;
+      if (isPastRenewalGrace(membership.endDate, graceDays)) {
+        dataToUpdate.status = MembershipStatus.EXPIRED;
+      }
     }
 
     if (Object.keys(dataToUpdate).length > 0) {
@@ -842,8 +856,8 @@ export class PaymentsService {
       message: `A walk-in payment of $${amountDecimal} was recorded at the front desk via ${methodName}. Invoice #${invoiceNumber}.`,
     });
 
-    // 2. Send stub email receipt
-    this.mailer.sendCashPaymentReceiptEmail(user.email, amountDecimal, invoiceNumber);
+    // 2. Send email receipt
+    await this.mailer.sendCashPaymentReceiptEmail(user.email, amountDecimal, invoiceNumber);
 
     return {
       success: true,
@@ -1089,7 +1103,7 @@ export class PaymentsService {
       message: `A ${isFullRefund ? 'full' : 'partial'} refund of $${refundedAmount.toFixed(2)} was processed for invoice #${invNumber}.`,
     });
 
-    this.mailer.sendRefundConfirmationEmail(
+    await this.mailer.sendRefundConfirmationEmail(
       payment.user.email,
       refundedAmount.toFixed(2),
       invNumber,
@@ -1196,7 +1210,7 @@ export class PaymentsService {
       message: `A ${isFullRefund ? 'full' : 'partial'} refund of $${formattedRefund} has been processed for invoice #${invNumber}.${dto.reason ? ` Reason: ${dto.reason}` : ''}`,
     });
 
-    this.mailer.sendRefundConfirmationEmail(
+    await this.mailer.sendRefundConfirmationEmail(
       payment.user.email,
       formattedRefund,
       invNumber,

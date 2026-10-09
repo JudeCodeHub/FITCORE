@@ -1,0 +1,1 @@
+ALTER TABLE "GymSettings" ADD COLUMN "renewalGraceDays" INTEGER NOT NULL DEFAULT 0;

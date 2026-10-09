@@ -109,8 +109,8 @@ export default function WalkInSalesPage() {
       setReceipt(res);
       // Reset form
       setNotes("");
-    } catch (err: any) {
-      setError(err?.message || "Failed to record walk-in payment");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to record walk-in payment");
     } finally {
       setLoading(false);
     }

@@ -44,7 +44,10 @@ export function PlanManagementPage() {
   }
 
   useEffect(() => {
-    loadPlans();
+    const timer = setTimeout(() => {
+      loadPlans();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   function openCreateDialog() {

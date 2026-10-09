@@ -99,7 +99,7 @@ export class BookingsService {
       const position = await this.prisma.booking.count({
         where: { classId, status: 'WAITLISTED' },
       });
-      this.mailer.sendWaitlistedEmail(user.email, cls.name, position);
+      await this.mailer.sendWaitlistedEmail(user.email, cls.name, position);
       await this.notifications.create({
         userId: user.id,
         type: 'BOOKING_CONFIRMATION',
@@ -107,7 +107,7 @@ export class BookingsService {
         message: `You're #${position} on the waitlist for ${cls.name}.`,
       });
     } else {
-      this.mailer.sendBookingConfirmationEmail(
+      await this.mailer.sendBookingConfirmationEmail(
         user.email,
         cls.name,
         cls.startTime,
@@ -167,7 +167,7 @@ export class BookingsService {
         if (!claimed) continue;
         sent++;
         try {
-          this.mailer.sendClassReminderEmail(
+          await this.mailer.sendClassReminderEmail(
             booking.user.email,
             booking.class.name,
             booking.class.startTime,

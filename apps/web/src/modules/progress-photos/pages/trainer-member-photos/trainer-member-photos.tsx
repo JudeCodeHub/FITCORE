@@ -19,17 +19,20 @@ export function TrainerMemberPhotosPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setError(null);
-    Promise.all([
-      progressPhotosService.listForMember(memberId).then(setPhotos),
-      trainerProfilesService.listMyMembers().then((members) => {
-        setMemberName(members.find((m) => m.id === memberId)?.name ?? null);
-      }),
-    ])
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Failed to load"),
-      )
-      .finally(() => setIsLoading(false));
+    const timer = setTimeout(() => {
+      setError(null);
+      Promise.all([
+        progressPhotosService.listForMember(memberId).then(setPhotos),
+        trainerProfilesService.listMyMembers().then((members) => {
+          setMemberName(members.find((m) => m.id === memberId)?.name ?? null);
+        }),
+      ])
+        .catch((err) =>
+          setError(err instanceof ApiError ? err.message : "Failed to load"),
+        )
+        .finally(() => setIsLoading(false));
+    }, 0);
+    return () => clearTimeout(timer);
   }, [memberId]);
 
   return (

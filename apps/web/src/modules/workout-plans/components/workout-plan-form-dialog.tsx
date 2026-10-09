@@ -59,24 +59,27 @@ export function WorkoutPlanFormDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
-    setError(null);
-    setName(editingPlan?.name ?? "");
-    setNotes(editingPlan?.notes ?? "");
-    setRows(
-      editingPlan
-        ? editingPlan.exercises
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map((e) => ({
-              exerciseId: e.exerciseId,
-              sets: String(e.sets),
-              reps: String(e.reps),
-            }))
-        : exercises.length > 0
-          ? [{ exerciseId: exercises[0].id, sets: "3", reps: "10" }]
-          : [],
-    );
+    const timer = setTimeout(() => {
+      if (!open) return;
+      setError(null);
+      setName(editingPlan?.name ?? "");
+      setNotes(editingPlan?.notes ?? "");
+      setRows(
+        editingPlan
+          ? editingPlan.exercises
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .map((e) => ({
+                exerciseId: e.exerciseId,
+                sets: String(e.sets),
+                reps: String(e.reps),
+              }))
+          : exercises.length > 0
+            ? [{ exerciseId: exercises[0].id, sets: "3", reps: "10" }]
+            : [],
+      );
+    }, 0);
+    return () => clearTimeout(timer);
   }, [open, editingPlan, exercises]);
 
   function addRow() {

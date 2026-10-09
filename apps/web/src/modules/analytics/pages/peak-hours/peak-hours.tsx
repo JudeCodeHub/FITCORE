@@ -32,8 +32,11 @@ export function PeakHoursPage() {
   }
 
   useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const timer = setTimeout(() => {
+      refresh();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, 0);
+    return () => clearTimeout(timer);
   }, [windowDays]);
 
   const maxCount = data ? Math.max(1, ...data.grid.flat()) : 1;

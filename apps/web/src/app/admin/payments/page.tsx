@@ -133,8 +133,8 @@ export default function AdminPaymentsPage() {
       });
       setSelectedPaymentForRefund(null);
       await fetchPayments(pagination.page);
-    } catch (err: any) {
-      setRefundError(err?.message || "Failed to process refund");
+    } catch (err: unknown) {
+      setRefundError(err instanceof Error ? err.message : "Failed to process refund");
     } finally {
       setRefundLoading(false);
     }

@@ -51,7 +51,10 @@ export function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    if (open) refreshList();
+    const timer = setTimeout(() => {
+      if (open) refreshList();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [open]);
 
   async function handleMarkRead(notification: INotification) {

@@ -66,7 +66,10 @@ export function EquipmentManagementPage() {
   }
 
   useEffect(() => {
-    loadEquipment();
+    const timer = setTimeout(() => {
+      loadEquipment();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   function openCreateDialog() {
@@ -93,6 +96,17 @@ export function EquipmentManagementPage() {
       status: item.status === "OUT_OF_SERVICE" ? "OPERATIONAL" : "OUT_OF_SERVICE",
     });
     await loadEquipment();
+  }
+
+  async function handleMaintenance(item: IEquipment) {
+    const notes = prompt(`Maintenance notes for ${item.name} (optional):`);
+    if (notes === null) return;
+    try {
+      await equipmentService.completeMaintenance(item.id, notes || undefined);
+      await loadEquipment();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to record maintenance');
+    }
   }
 
   async function handleDelete(item: IEquipment) {
@@ -137,6 +151,7 @@ export function EquipmentManagementPage() {
               <TableHead>Category</TableHead>
               <TableHead>Purchased</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Maintenance due</TableHead>
               <TableHead>Notes</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -152,10 +167,15 @@ export function EquipmentManagementPage() {
                     {STATUS_LABEL[item.status]}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                  {formatDate(item.nextMaintenanceAt)}
+                  {item.nextMaintenanceAt && new Date(item.nextMaintenanceAt) <= new Date() && <Badge className="ml-2">Due</Badge>}
+                </TableCell>
                 <TableCell className={styles.notesCell}>
                   {item.notes ?? "—"}
                 </TableCell>
                 <TableCell className={styles.actionsCell}>
+                  {item.nextMaintenanceAt && item.maintenanceIntervalDays && <Button variant="outline" size="sm" onClick={() => handleMaintenance(item)}>Record maintenance</Button>}
                   {item.status !== "RETIRED" && (
                     <Button
                       variant="outline"

@@ -114,7 +114,10 @@ export default function MemberInvoicesPage() {
   };
 
   useEffect(() => {
-    fetchPayments(1);
+    const timer = setTimeout(() => {
+      fetchPayments(1);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [status, method, startDate, endDate]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

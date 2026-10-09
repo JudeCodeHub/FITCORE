@@ -506,12 +506,22 @@ export class MembershipsService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  async expirePastRenewalGrace() {
+    const { renewalGraceDays } = await this.settings.getPolicy();
+    const cutoff = new Date(Date.now() - renewalGraceDays * MS_PER_DAY);
+    return this.prisma.membership.updateMany({
+      where: { status: { in: ['ACTIVE', 'FROZEN'] }, endDate: { lte: cutoff } },
+      data: { status: 'EXPIRED' },
+    });
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async sendRenewalReminders() {
     const expiring = await this.findExpiringInDays(RENEWAL_REMINDER_DAYS_BEFORE);
 
     for (const membership of expiring) {
       try {
-        this.mailer.sendRenewalReminderEmail(
+        await this.mailer.sendRenewalReminderEmail(
           membership.user.email,
           membership.plan.name,
           membership.endDate,

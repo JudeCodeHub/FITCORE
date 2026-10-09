@@ -13,7 +13,10 @@ export function FloorPassBentoCard() {
   const [occupancy, setOccupancy] = useState(142);
 
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSimulateScan = () => {

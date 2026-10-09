@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { overdueBalancesByUser } from '../payments/overdue-balance.js';
 import { ReviewsService } from '../reviews/reviews.service.js';
 import type { UpsertTrainerProfileDto } from './dto/upsert-trainer-profile.dto.js';
 
@@ -100,8 +101,8 @@ export class TrainerProfilesService {
     });
   }
 
-  listAllMembers() {
-    return this.prisma.user.findMany({
+  async listAllMembers() {
+    const members = await this.prisma.user.findMany({
       where: { role: 'MEMBER' },
       select: {
         id: true,
@@ -111,6 +112,21 @@ export class TrainerProfilesService {
       },
       orderBy: { name: 'asc' },
     });
+    if (members.length === 0) return [];
+    const payments = await this.prisma.payment.findMany({
+      where: {
+        userId: { in: members.map((member) => member.id) },
+        stripeInvoiceId: { not: null },
+        status: { in: ['FAILED', 'SUCCEEDED'] },
+      },
+      select: { userId: true, stripeInvoiceId: true, status: true, amount: true, currency: true },
+    });
+    const balances = overdueBalancesByUser(payments);
+    return members.map((member) => ({
+      ...member,
+      overdueBalances: balances.get(member.id) ?? [],
+      hasOverdueBalance: (balances.get(member.id)?.length ?? 0) > 0,
+    }));
   }
 
   async assignMember(trainerId: string, memberId: string) {

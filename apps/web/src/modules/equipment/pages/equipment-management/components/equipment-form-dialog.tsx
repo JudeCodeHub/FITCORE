@@ -49,17 +49,24 @@ export function EquipmentFormDialog({
   const [purchaseDate, setPurchaseDate] = useState("");
   const [status, setStatus] = useState<EquipmentStatus>("OPERATIONAL");
   const [notes, setNotes] = useState("");
+  const [maintenanceIntervalDays, setMaintenanceIntervalDays] = useState("");
+  const [nextMaintenanceAt, setNextMaintenanceAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
-    setError(null);
-    setName(editingEquipment?.name ?? "");
-    setCategory(editingEquipment?.category ?? "");
-    setPurchaseDate(editingEquipment?.purchaseDate?.slice(0, 10) ?? "");
-    setStatus(editingEquipment?.status ?? "OPERATIONAL");
-    setNotes(editingEquipment?.notes ?? "");
+    const timer = setTimeout(() => {
+      if (!open) return;
+      setError(null);
+      setName(editingEquipment?.name ?? "");
+      setCategory(editingEquipment?.category ?? "");
+      setPurchaseDate(editingEquipment?.purchaseDate?.slice(0, 10) ?? "");
+      setStatus(editingEquipment?.status ?? "OPERATIONAL");
+      setNotes(editingEquipment?.notes ?? "");
+      setMaintenanceIntervalDays(editingEquipment?.maintenanceIntervalDays?.toString() ?? "");
+      setNextMaintenanceAt(editingEquipment?.nextMaintenanceAt?.slice(0, 10) ?? "");
+    }, 0);
+    return () => clearTimeout(timer);
   }, [open, editingEquipment]);
 
   async function handleSubmit(event: FormEvent) {
@@ -73,6 +80,8 @@ export function EquipmentFormDialog({
         purchaseDate: purchaseDate || undefined,
         status,
         notes: notes || undefined,
+        maintenanceIntervalDays: maintenanceIntervalDays ? Number(maintenanceIntervalDays) : undefined,
+        nextMaintenanceAt: nextMaintenanceAt ? new Date(`${nextMaintenanceAt}T00:00:00Z`).toISOString() : undefined,
       });
       onOpenChange(false);
     } catch (err) {
@@ -152,6 +161,14 @@ export function EquipmentFormDialog({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="maintenance-interval">Maintenance interval (days)</Label>
+            <Input id="maintenance-interval" type="number" min={1} max={3650} value={maintenanceIntervalDays} onChange={(e) => setMaintenanceIntervalDays(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="next-maintenance">Next maintenance due</Label>
+            <Input id="next-maintenance" type="date" value={nextMaintenanceAt} onChange={(e) => setNextMaintenanceAt(e.target.value)} />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
