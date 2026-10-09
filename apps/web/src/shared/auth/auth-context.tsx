@@ -25,6 +25,7 @@ export interface IAuthContextValue {
   status: AuthStatus;
   login: (email: string, password: string) => Promise<IUser>;
   signup: (name: string, email: string, password: string) => Promise<IUser>;
+  completeInvite: (token: string, name: string, password: string) => Promise<IUser>;
   logout: () => Promise<void>;
 }
 
@@ -71,6 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const completeInvite = useCallback(async (token: string, name: string, password: string) => {
+    const result = await authService.completeInvite({ token, name, password });
+    setTokens(result);
+    setUser(result.user);
+    setStatus("authenticated");
+    return result.user;
+  }, []);
+
   const logout = useCallback(async () => {
     const refreshToken = getRefreshToken();
     if (refreshToken) {
@@ -82,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, status, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, status, login, signup, completeInvite, logout }}>
       {children}
     </AuthContext.Provider>
   );

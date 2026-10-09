@@ -31,6 +31,22 @@ export const authService = {
     );
   },
 
+  getInvite(token: string) {
+    return apiFetch<{ email: string; role: string }>(
+      `/auth/invite/${encodeURIComponent(token)}`,
+      {},
+      { auth: false },
+    );
+  },
+
+  completeInvite(input: { token: string; name: string; password: string }) {
+    return apiFetch<AuthResponse>(
+      "/auth/complete-invite",
+      { method: "POST", body: JSON.stringify(input) },
+      { auth: false },
+    );
+  },
+
   forgotPassword(email: string) {
     return apiFetch<{ message: string }>(
       "/auth/forgot-password",
