@@ -31,6 +31,14 @@ export const authService = {
     );
   },
 
+  verifyEmail(token: string) {
+    return apiFetch<{ message: string }>(
+      "/auth/verify-email",
+      { method: "POST", body: JSON.stringify({ token }) },
+      { auth: false },
+    );
+  },
+
   me() {
     return apiFetch<IUser>("/auth/me");
   },
