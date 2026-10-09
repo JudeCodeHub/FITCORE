@@ -11,6 +11,7 @@ import {
 import { authService } from "@/modules/auth/services/auth.service";
 import {
   clearTokens,
+  getAccessToken,
   getRefreshToken,
   loadTokensFromStorage,
   setTokens,
@@ -35,6 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadTokensFromStorage();
+    if (!getAccessToken() && !getRefreshToken()) {
+      queueMicrotask(() => setStatus("unauthenticated"));
+      return;
+    }
     authService
       .me()
       .then((profile) => {
