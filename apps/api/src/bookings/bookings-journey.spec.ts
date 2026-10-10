@@ -19,6 +19,7 @@ function setup(bookedCount: number) {
     $transaction: vi.fn(async (fn: (client: typeof tx) => Promise<unknown>) => fn(tx)),
     user: { findUnique: vi.fn().mockResolvedValue({ id: 'member-1', email: 'member@example.test' }) },
     class: { findUnique: vi.fn().mockResolvedValue({ name: 'Yoga', startTime: new Date() }) },
+    booking: { count: vi.fn().mockResolvedValue(1) },
   };
   const mailer = { sendBookingConfirmationEmail: vi.fn(), sendWaitlistedEmail: vi.fn() };
   const notifications = { create: vi.fn() };
