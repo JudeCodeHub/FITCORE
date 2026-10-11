@@ -24,7 +24,7 @@ export function AnalyticsNav() {
           className={cn(
             "shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
             pathname === link.href
-              ? "bg-[#17231d] text-white dark:bg-primary dark:text-primary-foreground"
+              ? "bg-[#083a3b] text-white dark:bg-primary dark:text-primary-foreground"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
           )}
         >

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Activity } from "lucide-react";
+import { ArrowRight, Activity } from "lucide-react";
 import { heroStyles as styles } from "./hero-section.styles";
 
 export function HeroSection() {
@@ -39,8 +39,8 @@ export function HeroSection() {
           {/* Eyebrow Beacon Badge */}
           <div className={`${styles.badge} animate-in fade-in slide-in-from-bottom-3 duration-500`}>
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-teal-400" />
             </span>
             <span>NEXT-GEN GYM & PERFORMANCE HUB</span>
           </div>
@@ -75,7 +75,7 @@ export function HeroSection() {
 
           {/* Live Floor Pulse Chip */}
           <div className={styles.pulsePill}>
-            <Activity className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <Activity className="h-3.5 w-3.5 text-teal-400 shrink-0" />
             <span>42 Athletes active right now · 99.8% Turnstile QR unlock rate</span>
           </div>
 

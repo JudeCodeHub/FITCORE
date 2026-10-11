@@ -74,7 +74,7 @@ export function LoginPage() {
 
       {needsVerification && (
         <button type="button" onClick={resendVerification}
-          className="mb-4 text-sm font-semibold text-emerald-700 hover:underline">
+          className="mb-4 text-sm font-semibold text-teal-700 hover:underline">
           Send a new verification link
         </button>
       )}
@@ -130,7 +130,7 @@ export function LoginPage() {
         </div>
 
         <div className="text-right">
-          <Link href="/forgot-password" className="text-sm font-semibold text-emerald-700 hover:underline">
+          <Link href="/forgot-password" className="text-sm font-semibold text-teal-700 hover:underline">
             Forgot password?
           </Link>
         </div>

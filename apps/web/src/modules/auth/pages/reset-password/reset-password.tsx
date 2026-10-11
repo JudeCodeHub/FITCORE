@@ -58,7 +58,7 @@ export function ResetPasswordPage() {
   return (
     <AuthSplitLayout eyebrow="Account recovery" headline="Get back to what moves you.">
       <div className={styles.header}>
-        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-700">
+        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-100 bg-teal-50 text-teal-700">
           {done ? <CircleCheck className="h-5 w-5" aria-hidden="true" /> : error && !token ? <CircleAlert className="h-5 w-5" aria-hidden="true" /> : <KeyRound className="h-5 w-5" aria-hidden="true" />}
         </div>
         <h1 className={styles.title}>{done ? "Password updated" : token ? "Create a new password" : error ? "Link unavailable" : "Checking your link"}</h1>
@@ -72,8 +72,8 @@ export function ResetPasswordPage() {
 
       {done ? (
         <div role="status" className="space-y-5">
-          <div className="flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
-            <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+          <div className="flex items-start gap-3 rounded-xl border border-teal-100 bg-teal-50/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
+            <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" aria-hidden="true" />
             Your password has been reset. Your old sessions have been signed out for security.
           </div>
           <Link href="/login" className={styles.submitBtn}><span>Go to log in</span><ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>

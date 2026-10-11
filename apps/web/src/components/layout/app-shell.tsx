@@ -24,7 +24,7 @@ export function AppShell({
     .sort((a, b) => b.href.length - a.href.length)[0];
 
   return (
-    <div className="flex min-h-screen bg-[#f7f8f5] text-foreground dark:bg-background">
+    <div className="flex min-h-screen bg-[#f4fafa] text-foreground dark:bg-background">
       {menuOpen && (
         <button
           type="button"

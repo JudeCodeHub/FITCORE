@@ -16,12 +16,12 @@ export function WorkoutPrBentoCard() {
       <div className={styles.textCol("lg:order-1")}>
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1 text-xs font-mono font-bold tracking-widest text-amber-800 uppercase">
-              <Trophy className="h-3.5 w-3.5 text-amber-600" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-mono font-bold tracking-widest text-teal-800 uppercase">
+              <Trophy className="h-3.5 w-3.5 text-teal-600" />
               03 / PR TRACKER
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
-              <Award className="h-3.5 w-3.5 text-amber-600" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
+              <Award className="h-3.5 w-3.5 text-teal-600" />
               CLUB MILESTONE
             </span>
           </div>
@@ -39,7 +39,7 @@ export function WorkoutPrBentoCard() {
           {/* Exercise Details */}
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 border border-amber-200 text-amber-700">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 border border-teal-200 text-teal-700">
                 <Dumbbell className="h-4 w-4" />
               </div>
               <div>
@@ -61,7 +61,7 @@ export function WorkoutPrBentoCard() {
               className="w-full flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3 text-xs cursor-pointer hover:bg-slate-50 transition-colors shadow-xs"
             >
               <span className="font-mono text-slate-800">Set 1: 225 lbs × 8 reps</span>
-              <span className={`inline-flex items-center gap-1 text-xs font-medium ${set1Done ? "text-emerald-600 font-semibold" : "text-slate-400"}`}>
+              <span className={`inline-flex items-center gap-1 text-xs font-medium ${set1Done ? "text-teal-600 font-semibold" : "text-slate-400"}`}>
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 {set1Done ? "Warm-up Done" : "Mark"}
               </span>
@@ -73,7 +73,7 @@ export function WorkoutPrBentoCard() {
               className="w-full flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3 text-xs cursor-pointer hover:bg-slate-50 transition-colors shadow-xs"
             >
               <span className="font-mono text-slate-800">Set 2: 275 lbs × 5 reps</span>
-              <span className={`inline-flex items-center gap-1 text-xs font-medium ${set2Done ? "text-emerald-600 font-semibold" : "text-slate-400"}`}>
+              <span className={`inline-flex items-center gap-1 text-xs font-medium ${set2Done ? "text-teal-600 font-semibold" : "text-slate-400"}`}>
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 {set2Done ? "Working Done" : "Mark"}
               </span>
@@ -84,17 +84,17 @@ export function WorkoutPrBentoCard() {
               onClick={() => setSet3Done(!set3Done)}
               className={`w-full flex items-center justify-between rounded-lg border p-3 text-xs cursor-pointer transition-all duration-300 shadow-xs ${
                 set3Done
-                  ? "border-amber-400 bg-amber-50 shadow-sm"
+                  ? "border-teal-400 bg-teal-50 shadow-sm"
                   : "border-slate-200 bg-white hover:bg-slate-50"
               }`}
             >
               <div className="flex items-center gap-2">
                 <span className="font-mono font-bold text-slate-900">Set 3: 315 lbs × 3 reps</span>
-                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                <span className="rounded bg-teal-100 px-1.5 py-0.5 text-[10px] font-bold text-teal-800">
                   PR ATTEMPT
                 </span>
               </div>
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700">
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-teal-700">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 {set3Done ? "PR SMASHED! 🏆" : "Tap to Log"}
               </span>
@@ -105,7 +105,7 @@ export function WorkoutPrBentoCard() {
           <div
             className={`rounded-xl border p-3.5 transition-all duration-300 shadow-sm ${
               set3Done
-                ? "border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 text-slate-900"
+                ? "border-teal-300 bg-gradient-to-r from-teal-50 via-teal-50 to-teal-50 text-slate-900"
                 : "border-slate-200 bg-white text-slate-600"
             }`}
           >
@@ -122,7 +122,7 @@ export function WorkoutPrBentoCard() {
               <button
                 type="button"
                 onClick={() => setSet3Done(!set3Done)}
-                className="rounded-md border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 hover:bg-amber-200 cursor-pointer shadow-xs"
+                className="rounded-md border border-teal-300 bg-teal-100 px-3 py-1 text-xs font-bold text-teal-800 hover:bg-teal-200 cursor-pointer shadow-xs"
               >
                 {set3Done ? "Reset" : "Test PR"}
               </button>
