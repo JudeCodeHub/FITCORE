@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { WorkspacePageBanner } from "@/components/layout/workspace-page-banner";
 import { apiFetch } from "@/shared/api-client/http";
 import { downloadReport } from "@/shared/api-client/download";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,7 @@ export default function WalkInSalesPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <WorkspacePageBanner eyebrow="Front desk / Billing" title="Walk-in sales" description="Find a member, choose a plan, and record their payment." />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Front Desk Walk-In Sale</h1>
         <p className="text-muted-foreground text-sm">

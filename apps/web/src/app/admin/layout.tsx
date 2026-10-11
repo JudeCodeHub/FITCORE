@@ -7,7 +7,7 @@ export default function AdminLayout({
 }) {
   return (
     <RoleShell role="ADMIN">
-      <div className="admin-workspace">{children}</div>
+      <div className="workspace-design admin-workspace">{children}</div>
     </RoleShell>
   );
 }

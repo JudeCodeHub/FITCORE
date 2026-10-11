@@ -90,7 +90,7 @@ export function CheckInDeskPage() {
 
   return (
     <div>
-      <h1 className={styles.title}>Check-In</h1>
+      <h1 className={styles.title}>Scan a member</h1>
 
       <div className={styles.grid}>
         <Card>
