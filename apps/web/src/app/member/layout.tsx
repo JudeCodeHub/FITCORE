@@ -7,7 +7,7 @@ export default function MemberLayout({
 }) {
   return (
     <RoleShell role="MEMBER">
-      {children}
+      <div className="workspace-design">{children}</div>
     </RoleShell>
   );
 }

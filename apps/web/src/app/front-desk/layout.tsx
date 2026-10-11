@@ -7,7 +7,7 @@ export default function FrontDeskLayout({
 }) {
   return (
     <RoleShell role="FRONT_DESK">
-      {children}
+      <div className="workspace-design">{children}</div>
     </RoleShell>
   );
 }

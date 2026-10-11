@@ -10,6 +10,7 @@ import {
   StatusBadge,
   type MembershipStatus as BadgeStatus,
 } from "@/components/status-badge";
+import { WorkspacePageBanner } from "@/components/layout/workspace-page-banner";
 import { MyQrCode } from "@/modules/check-in";
 import { membershipsService } from "@/modules/memberships";
 import type { IMyMembership } from "@/modules/memberships";
@@ -46,7 +47,11 @@ export function MemberHomePage() {
 
   return (
     <div>
-      <h1 className={styles.greeting}>Welcome, {user.name}</h1>
+      <WorkspacePageBanner
+        eyebrow="Member workspace / Overview"
+        title={`Your space, ${user.name.split(" ")[0]}.`}
+        description="Your membership details and check-in code are ready when you are."
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
