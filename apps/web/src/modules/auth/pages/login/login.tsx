@@ -45,7 +45,7 @@ export function LoginPage() {
   async function resendVerification() {
     try {
       const result = await authService.resendVerification(email);
-      setResendMessage(result.message + " In local development, check the API console.");
+      setResendMessage(result.message + " Check your email inbox for the link.");
       setNeedsVerification(false);
     } catch {
       setResendMessage("Could not request a new link. Try again.");
