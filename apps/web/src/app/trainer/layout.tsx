@@ -7,7 +7,7 @@ export default function TrainerLayout({
 }) {
   return (
     <RoleShell role="TRAINER">
-      {children}
+      <div className="workspace-design">{children}</div>
     </RoleShell>
   );
 }
