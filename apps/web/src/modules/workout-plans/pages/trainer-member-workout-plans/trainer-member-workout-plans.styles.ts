@@ -1,4 +1,4 @@
 export const trainerMemberWorkoutPlansStyles = {
-  header: "mb-6 flex items-center justify-between",
-  title: "font-heading text-2xl font-semibold tracking-tight",
+  header: "mb-6 flex flex-wrap items-center justify-between gap-4",
+  title: "font-heading text-2xl font-bold tracking-tight",
 } as const;
