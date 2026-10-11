@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AdminPageBanner } from "@/components/layout/admin-page-banner";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
 import type { ITrainerUtilization } from "@/modules/analytics/types/analytics";
@@ -56,8 +57,8 @@ export function TrainerUtilizationPage() {
 
   return (
     <div>
+      <AdminPageBanner eyebrow="Team performance" title="Trainer utilization" description="Review sessions and booked hours for each trainer." />
       <AnalyticsNav />
-      <h1 className={styles.title}>Trainer Utilization</h1>
 
       {trainers.length === 0 ? (
         <p className="text-sm text-muted-foreground">No trainers yet.</p>

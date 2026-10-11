@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminPageBanner } from "@/components/layout/admin-page-banner";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
 import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
@@ -38,8 +39,8 @@ export function AttendancePage() {
 
   return (
     <div>
+      <AdminPageBanner eyebrow="Class performance" title="Class attendance" description="Compare fill rates and see which classes members attend most." />
       <AnalyticsNav />
-      <h1 className={styles.title}>Class Attendance</h1>
       <ReportExportButtons
         onExport={(format) =>
           analyticsService.exportAttendanceReport(format, 90)

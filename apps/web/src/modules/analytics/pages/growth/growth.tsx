@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminPageBanner } from "@/components/layout/admin-page-banner";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
 import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
@@ -43,8 +44,8 @@ export function GrowthPage() {
 
   return (
     <div>
+      <AdminPageBanner eyebrow="Business performance" title="Member growth" description="Understand new memberships, churn, and active member trends." />
       <AnalyticsNav />
-      <h1 className={styles.title}>Member Growth & Churn</h1>
       <ReportExportButtons
         onExport={(format) =>
           analyticsService.exportGrowthChurnReport(format, 12)

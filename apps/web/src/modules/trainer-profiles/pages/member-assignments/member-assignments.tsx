@@ -66,7 +66,7 @@ export function MemberAssignmentsPage() {
 
   return (
     <div>
-      <h1 className={styles.title}>Members</h1>
+      <h1 className={styles.title}>Trainer assignments</h1>
       <p className={styles.subtitle}>
         Assign each member to the trainer who works with them.
       </p>

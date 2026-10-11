@@ -88,7 +88,7 @@ export function PlanManagementPage() {
     <div>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Plans</h1>
+          <h1 className={styles.title}>Membership plans</h1>
           <p className={styles.subtitle}>Manage the membership plans members can subscribe to.</p>
         </div>
         <Button onClick={openCreateDialog}>New plan</Button>

@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPageBanner } from "@/components/layout/admin-page-banner";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
 import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
@@ -43,8 +44,8 @@ export function PeakHoursPage() {
 
   return (
     <div>
+      <AdminPageBanner eyebrow="Attendance patterns" title="Peak hours" description="See when members check in most often across the selected time window." />
       <AnalyticsNav />
-      <h1 className={styles.title}>Peak Hours</h1>
       <ReportExportButtons
         onExport={(format) =>
           analyticsService.exportPeakHoursReport(format, windowDays)
