@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { ArrowLeft, ArrowRight, CircleCheck, Mail } from "lucide-react";
 import { AuthSplitLayout } from "@/modules/auth/components/auth-split-layout";
+import { loginStyles as styles } from "@/modules/auth/pages/login/login.styles";
 import { authService } from "@/modules/auth/services/auth.service";
 import { ApiError } from "@/shared/api-client/http";
 
@@ -27,28 +29,66 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <AuthSplitLayout eyebrow="Account recovery" headline="Reset your password.">
-      <div className="space-y-5">
-        <h1 className="font-heading text-2xl font-bold text-slate-950">Forgot password?</h1>
-        {sent ? (
-          <p role="status" className="text-sm text-slate-600">
-            If this email is registered, a reset link has been created. In local development, find it in the API console.
-          </p>
-        ) : (
-          <form onSubmit={submit} className="space-y-4">
-            <label htmlFor="recovery-email" className="block text-sm font-medium text-slate-700">Email address</label>
-            <input id="recovery-email" type="email" autoComplete="email" required value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
-            {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-            <button type="submit" disabled={busy}
-              className="w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-slate-950 disabled:opacity-50">
-              {busy ? "Sending…" : "Send reset link"}
-            </button>
-          </form>
-        )}
-        <Link href="/login" className="inline-block text-sm font-semibold text-emerald-700 hover:underline">Back to login</Link>
+    <AuthSplitLayout eyebrow="Account recovery" headline="A fresh start is one link away.">
+      <div className={styles.header}>
+        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-700">
+          {sent ? <CircleCheck className="h-5 w-5" aria-hidden="true" /> : <Mail className="h-5 w-5" aria-hidden="true" />}
+        </div>
+        <h1 className={styles.title}>{sent ? "Check your inbox" : "Forgot your password?"}</h1>
+        <p className={styles.subtitle}>
+          {sent
+            ? "If an account exists for this email, we’ve sent a password reset link."
+            : "Enter your email and we’ll send you a link to reset your password."}
+        </p>
       </div>
+
+      {sent ? (
+        <div role="status" className="space-y-5">
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
+            Check your local mail inbox for the reset link. The link may take a moment to arrive.
+          </div>
+          <button
+            type="button"
+            onClick={() => { setSent(false); setError(null); }}
+            className="text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
+          >
+            Try another email address
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className={styles.form}>
+          <div className={styles.field}>
+            <label htmlFor="recovery-email" className={styles.label}>Email address</label>
+            <div className={styles.inputWrap}>
+              <Mail className={styles.inputIcon} aria-hidden="true" />
+              <input
+                id="recovery-email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className={styles.input}
+              />
+            </div>
+          </div>
+          {error && (
+            <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+          )}
+          <button type="submit" disabled={busy} className={styles.submitBtn}>
+            <span>{busy ? "Sending link…" : "Send reset link"}</span>
+            {!busy && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
+          </button>
+        </form>
+      )}
+
+      <p className={styles.footer}>
+        <Link href="/login" className={`inline-flex items-center gap-2 ${styles.footerLink}`}>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Back to log in
+        </Link>
+      </p>
     </AuthSplitLayout>
   );
 }
