@@ -1,6 +1,6 @@
 export const myMembersStyles = {
-  title: "mb-1 font-heading text-2xl font-semibold tracking-tight",
-  subtitle: "mb-6 text-sm text-muted-foreground",
+  title: "mb-1 font-heading text-2xl font-bold tracking-tight",
+  subtitle: "mb-7 text-sm text-muted-foreground",
   contactCell: "text-sm text-muted-foreground",
-  linksCell: "flex justify-end gap-2",
+  linksCell: "flex flex-wrap justify-end gap-2",
 } as const;
