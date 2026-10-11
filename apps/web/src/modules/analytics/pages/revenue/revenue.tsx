@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminPageBanner } from "@/components/layout/admin-page-banner";
 import { AnalyticsNav } from "@/modules/analytics/components/analytics-nav";
 import { ReportExportButtons } from "@/modules/analytics/components/report-export-buttons";
 import { analyticsService } from "@/modules/analytics/services/analytics.service";
@@ -44,8 +45,8 @@ export function RevenuePage() {
 
   return (
     <div>
+      <AdminPageBanner eyebrow="Business performance" title="Revenue" description="Track recurring revenue and active memberships over time." />
       <AnalyticsNav />
-      <h1 className={styles.title}>Revenue</h1>
       <ReportExportButtons
         onExport={(format) =>
           analyticsService.exportRevenueReport(format, 12)

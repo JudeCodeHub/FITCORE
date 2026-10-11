@@ -186,3 +186,25 @@
     -ms-overflow-style: none;
   }
 }
+
+@layer components {
+  .admin-workspace [data-slot="card"] {
+    border: 1px solid color-mix(in oklab, var(--foreground) 7%, transparent);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 30px -18px rgb(16 31 22 / 16%);
+    --tw-ring-shadow: 0 0 #0000;
+  }
+
+  .admin-workspace [data-slot="card-title"] {
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .admin-workspace table {
+    font-size: 0.875rem;
+  }
+
+  .admin-workspace thead {
+    background: color-mix(in oklab, var(--primary) 6%, var(--card));
+  }
+}

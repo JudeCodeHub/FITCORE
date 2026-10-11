@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AdminPageBanner } from "@/components/layout/admin-page-banner";
 import { apiFetch } from "@/shared/api-client/http";
 import { downloadReport } from "@/shared/api-client/download";
 import { Button } from "@/components/ui/button";
@@ -208,6 +209,7 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="space-y-6">
+      <AdminPageBanner eyebrow="Billing operations" title="Payments" description="Review revenue, investigate transactions, and manage refunds." />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Payments & Revenue Log</h1>
