@@ -31,7 +31,7 @@ export function ForgotPasswordPage() {
   return (
     <AuthSplitLayout eyebrow="Account recovery" headline="A fresh start is one link away.">
       <div className={styles.header}>
-        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-700">
+        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-100 bg-teal-50 text-teal-700">
           {sent ? <CircleCheck className="h-5 w-5" aria-hidden="true" /> : <Mail className="h-5 w-5" aria-hidden="true" />}
         </div>
         <h1 className={styles.title}>{sent ? "Check your inbox" : "Forgot your password?"}</h1>
@@ -44,13 +44,13 @@ export function ForgotPasswordPage() {
 
       {sent ? (
         <div role="status" className="space-y-5">
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
+          <div className="rounded-xl border border-teal-100 bg-teal-50/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
             Check your local mail inbox for the reset link. The link may take a moment to arrive.
           </div>
           <button
             type="button"
             onClick={() => { setSent(false); setError(null); }}
-            className="text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
+            className="text-sm font-semibold text-teal-700 transition-colors hover:text-teal-800 hover:underline"
           >
             Try another email address
           </button>

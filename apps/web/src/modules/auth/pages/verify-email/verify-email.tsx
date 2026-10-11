@@ -44,7 +44,7 @@ export function VerifyEmailPage() {
     <AuthSplitLayout eyebrow="Account security" headline="One quick check. Full access.">
       <div aria-live="polite">
         <div className={styles.header}>
-          <div className={`mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border ${state === "error" ? "border-red-100 bg-red-50 text-red-600" : "border-emerald-100 bg-emerald-50 text-emerald-700"}`}>
+          <div className={`mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border ${state === "error" ? "border-red-100 bg-red-50 text-red-600" : "border-teal-100 bg-teal-50 text-teal-700"}`}>
             {state === "loading" ? <MailCheck className="h-5 w-5" aria-hidden="true" /> : state === "success" ? <CircleCheck className="h-5 w-5" aria-hidden="true" /> : <CircleAlert className="h-5 w-5" aria-hidden="true" />}
           </div>
           <h1 className={styles.title}>
@@ -61,13 +61,13 @@ export function VerifyEmailPage() {
 
         {state === "loading" ? (
           <div role="status" className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" aria-hidden="true" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" aria-hidden="true" />
             {message}
           </div>
         ) : state === "success" ? (
           <div role="status" className="space-y-5">
-            <div className="flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+            <div className="flex items-start gap-3 rounded-xl border border-teal-100 bg-teal-50/70 px-4 py-3 text-sm leading-relaxed text-slate-700">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" aria-hidden="true" />
               {message}
             </div>
             <Link href="/login" className={styles.submitBtn}>

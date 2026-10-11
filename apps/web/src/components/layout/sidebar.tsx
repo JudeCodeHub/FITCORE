@@ -35,17 +35,17 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex w-70 -translate-x-full flex-col border-r border-white/10 bg-[#111b19] text-white shadow-2xl transition-transform duration-200 lg:translate-x-0 lg:shadow-none",
+        "fixed inset-y-0 left-0 z-50 flex w-70 -translate-x-full flex-col border-r border-white/10 bg-[#082f31] text-white shadow-2xl transition-transform duration-200 lg:translate-x-0 lg:shadow-none",
         isOpen && "translate-x-0",
         className,
       )}
     >
       <div className="flex h-22 items-center justify-between border-b border-white/10 px-6">
         <Link href={items[0].href} onClick={onNavigate} className="flex items-center gap-3" aria-label="FitCore home">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-[#c9f27a] text-[#17221b]">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-[#5eead4] text-[#083a3b]">
             <Dumbbell className="size-5" strokeWidth={2.5} />
           </span>
-          <span className="font-heading text-xl font-bold tracking-tight">fitcore<span className="text-[#c9f27a]">.</span></span>
+          <span className="font-heading text-xl font-bold tracking-tight">fitcore<span className="text-[#5eead4]">.</span></span>
         </Link>
         <button type="button" aria-label="Close navigation" onClick={onClose} className="rounded-lg p-2 text-white/60 hover:bg-white/10 hover:text-white lg:hidden">
           <X className="size-5" />
@@ -62,7 +62,7 @@ export function Sidebar({
             className={cn(
               "group flex min-h-11 items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-medium text-white/65 transition-colors hover:bg-white/8 hover:text-white",
               resolvedActiveHref === item.href &&
-                "bg-[#c9f27a] font-semibold text-[#17221b] hover:bg-[#c9f27a] hover:text-[#17221b]",
+                "bg-[#5eead4] font-semibold text-[#083a3b] hover:bg-[#5eead4] hover:text-[#083a3b]",
             )}
           >
             <span>{item.label}</span>
@@ -71,7 +71,7 @@ export function Sidebar({
         ))}
       </nav>
       <div className="mx-4 mb-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c9f27a]">Your space</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#5eead4]">Your space</p>
         <p className="mt-1 font-heading text-base font-semibold">{ROLE_LABEL[role]} workspace</p>
         <p className="mt-1 text-xs leading-relaxed text-white/45">Built to keep your day moving.</p>
       </div>

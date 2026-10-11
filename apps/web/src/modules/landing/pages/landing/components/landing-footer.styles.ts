@@ -9,7 +9,7 @@ export const landingFooterStyles = {
   brandCol: "lg:col-span-5 flex flex-col justify-between",
   brandHeader: "flex items-center gap-2.5",
   logoBadge:
-    "flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 text-black font-black text-xs shadow-md shadow-emerald-500/20",
+    "flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400 to-teal-500 text-black font-black text-xs shadow-md shadow-teal-500/20",
   wordmark:
     "font-heading text-sm font-bold tracking-widest text-slate-950 uppercase",
   headline:
@@ -23,9 +23,9 @@ export const landingFooterStyles = {
   column: "p-6 sm:p-7 flex flex-col",
   columnTitle: "text-sm font-semibold text-slate-900 tracking-wide",
   linkList: "mt-5 flex flex-col space-y-3.5",
-  link: "text-sm text-slate-600 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 group",
+  link: "text-sm text-slate-600 hover:text-teal-600 transition-colors inline-flex items-center gap-1 group",
   arrowIcon:
-    "h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all",
+    "h-3.5 w-3.5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all",
 
   // Bottom row (copyright & legal)
   bottomRow:

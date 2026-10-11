@@ -173,10 +173,10 @@ export function EcosystemOrbital() {
 
       {/* Center Core Hub Card */}
       <div className="relative z-10 flex flex-col items-center">
-        <div className="group relative flex h-24 w-24 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 backdrop-blur-md transition-all duration-300 hover:border-emerald-500 sm:h-28 sm:w-28">
-          <div className="absolute inset-0 rounded-2xl bg-emerald-500/5 transition-opacity group-hover:opacity-100" />
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 transition-transform group-hover:scale-105 sm:h-14 sm:w-14">
-            <Dumbbell className="h-6 w-6 text-emerald-600 sm:h-7 sm:w-7" />
+        <div className="group relative flex h-24 w-24 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 backdrop-blur-md transition-all duration-300 hover:border-teal-500 sm:h-28 sm:w-28">
+          <div className="absolute inset-0 rounded-2xl bg-teal-500/5 transition-opacity group-hover:opacity-100" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 text-teal-600 transition-transform group-hover:scale-105 sm:h-14 sm:w-14">
+            <Dumbbell className="h-6 w-6 text-teal-600 sm:h-7 sm:w-7" />
           </div>
         </div>
         <span className="mt-2.5 text-[10px] font-semibold tracking-widest text-slate-500 uppercase">
@@ -201,7 +201,7 @@ export function EcosystemOrbital() {
               className={cn(
                 "group flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl border bg-white shadow-md shadow-slate-100 backdrop-blur-md transition-all duration-300 sm:h-14 sm:w-14",
                 isActive
-                  ? "scale-110 border-emerald-500 bg-emerald-50 text-emerald-700 shadow-emerald-500/20"
+                  ? "scale-110 border-teal-500 bg-teal-50 text-teal-700 shadow-teal-500/20"
                   : "border-slate-200 text-slate-700 hover:scale-105 hover:border-slate-300 hover:text-slate-900",
               )}
             >
@@ -211,7 +211,7 @@ export function EcosystemOrbital() {
             <span
               className={cn(
                 "mt-1.5 text-[10px] font-medium tracking-tight transition-colors duration-200 sm:text-[11px]",
-                isActive ? "text-emerald-700 font-semibold" : "text-slate-600",
+                isActive ? "text-teal-700 font-semibold" : "text-slate-600",
               )}
             >
               {node.label}

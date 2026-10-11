@@ -1,10 +1,10 @@
 export const featuresStyles = {
   section: "relative mx-auto w-full max-w-screen-2xl px-6 sm:px-8 lg:px-12 py-24 sm:py-36 overflow-x-clip",
   ambientGlow:
-    "pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[700px] w-[1000px] rounded-full bg-emerald-500/5 blur-[180px]",
+    "pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[700px] w-[1000px] rounded-full bg-teal-500/5 blur-[180px]",
   headingWrap: "mx-auto max-w-3xl text-center mb-20 sm:mb-28",
   eyebrowBadge:
-    "inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-semibold tracking-widest text-emerald-800 uppercase shadow-xs",
+    "inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-1.5 text-xs font-semibold tracking-widest text-teal-800 uppercase shadow-xs",
   title:
     "mt-5 font-heading text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-950 leading-[1.1]",
   subtitle:

@@ -39,11 +39,11 @@ export function FloorPassBentoCard() {
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-3.5 py-1 text-xs font-mono font-bold tracking-widest text-slate-800 uppercase">
-              <Users className="h-3.5 w-3.5 text-emerald-600" />
+              <Users className="h-3.5 w-3.5 text-teal-600" />
               01 / TURNSTILE PASS
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+              <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
               LIVE RADAR
             </span>
           </div>
@@ -72,8 +72,8 @@ export function FloorPassBentoCard() {
             </div>
 
             <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-200">
-              <div className="h-full bg-emerald-600" style={{ width: "47%" }} />
-              <div className="h-full bg-emerald-400" style={{ width: "21%" }} />
+              <div className="h-full bg-teal-600" style={{ width: "47%" }} />
+              <div className="h-full bg-teal-400" style={{ width: "21%" }} />
               <div className="h-full bg-teal-400" style={{ width: "11%" }} />
             </div>
           </div>
@@ -105,17 +105,17 @@ export function FloorPassBentoCard() {
             <div
               className={`flex-1 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-all duration-300 shadow-sm ${
                 isUnlocked
-                  ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                  ? "border-teal-300 bg-teal-50 text-teal-800"
                   : isScanning
-                  ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                  ? "border-teal-300 bg-teal-50 text-teal-800"
                   : "border-slate-200 bg-white text-slate-700"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 {isUnlocked ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-teal-600 shrink-0" />
                 ) : isScanning ? (
-                  <ScanLine className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
+                  <ScanLine className="h-4 w-4 animate-spin text-teal-600 shrink-0" />
                 ) : (
                   <QrCode className="h-4 w-4 text-slate-400 shrink-0" />
                 )}
@@ -137,7 +137,7 @@ export function FloorPassBentoCard() {
                 type="button"
                 onClick={handleSimulateScan}
                 disabled={isScanning}
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-400 py-2 px-3.5 text-xs font-bold text-black shadow-sm shadow-emerald-500/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-teal-500 to-teal-400 py-2 px-3.5 text-xs font-bold text-black shadow-sm shadow-teal-500/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer disabled:opacity-50"
               >
                 <span>{isScanning ? "..." : isUnlocked ? "Scan Again" : "Tap Scan"}</span>
                 <ArrowRight className="h-3 w-3" />

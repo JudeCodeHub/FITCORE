@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
+import { WorkspacePageBanner } from "@/components/layout/workspace-page-banner";
 import { apiFetch } from "@/shared/api-client/http";
 import { downloadReport } from "@/shared/api-client/download";
 import { Button } from "@/components/ui/button";
@@ -85,7 +86,6 @@ export default function MemberInvoicesPage() {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   const fetchPayments = async (targetPage = 1) => {
     setLoading(true);
@@ -211,6 +211,7 @@ export default function MemberInvoicesPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+      <WorkspacePageBanner eyebrow="Member / Billing" title="Billing history" description="Review your payments, invoices, and receipts in one place." />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Payment & Invoice History</h1>

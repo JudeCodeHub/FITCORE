@@ -170,7 +170,7 @@ export function PricingSection() {
                   {isHighlighted ? (
                     <Flame className="h-3 w-3" />
                   ) : (
-                    <Crown className="h-3 w-3 text-amber-400" />
+                    <Crown className="h-3 w-3 text-teal-400" />
                   )}
                   <span>{tier.badge}</span>
                 </div>

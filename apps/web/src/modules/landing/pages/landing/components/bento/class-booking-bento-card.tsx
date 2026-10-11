@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Zap, ShieldCheck, Check, Clock, Flame } from "lucide-react";
+import { Zap, ShieldCheck, Check, Flame } from "lucide-react";
 import { featuresStyles as styles } from "../features-section.styles";
 
 const INITIAL_SPOTS = [
@@ -48,12 +48,12 @@ export function ClassBookingBentoCard() {
       <div className={styles.textCol("lg:order-2")}>
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1 text-xs font-mono font-bold tracking-widest text-amber-800 uppercase">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-mono font-bold tracking-widest text-teal-800 uppercase">
               <Zap className="h-3.5 w-3.5" />
               02 / STUDIO BOOKINGS
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
-              <Flame className="h-3 w-3 fill-amber-500 text-amber-500" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
+              <Flame className="h-3 w-3 fill-teal-500 text-teal-500" />
               HIGH INTENSITY
             </span>
           </div>
@@ -79,7 +79,7 @@ export function ClassBookingBentoCard() {
               className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
                 isBooked
                   ? "border border-red-200 bg-red-50 text-red-700"
-                  : "border border-emerald-200 bg-emerald-50 text-emerald-800"
+                  : "border border-teal-200 bg-teal-50 text-teal-800"
               }`}
             >
               {isBooked ? "12 / 12 FULL" : "11 / 12 Booked"}
@@ -90,7 +90,7 @@ export function ClassBookingBentoCard() {
           <div>
             <div className="flex items-center justify-between text-xs text-slate-500 mb-2.5">
               <span>Studio Floor Layout (Select Spot 12)</span>
-              <span className="text-emerald-600 font-mono text-[11px] font-semibold">Real-Time Sync</span>
+              <span className="text-teal-600 font-mono text-[11px] font-semibold">Real-Time Sync</span>
             </div>
 
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -103,9 +103,9 @@ export function ClassBookingBentoCard() {
                     onClick={() => isUserSpot && setIsBooked(!isBooked)}
                     className={`flex h-11 items-center justify-center rounded-lg border text-xs font-bold transition-all duration-300 ${
                       isUserSpot && isBooked
-                        ? "border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/20 scale-105 cursor-pointer"
+                        ? "border-teal-600 bg-teal-600 text-white shadow-md shadow-teal-600/20 scale-105 cursor-pointer"
                         : isUserSpot && !isBooked
-                        ? "border-dashed border-emerald-500 bg-emerald-50 text-emerald-700 animate-pulse hover:bg-emerald-100 cursor-pointer"
+                        ? "border-dashed border-teal-500 bg-teal-50 text-teal-700 animate-pulse hover:bg-teal-100 cursor-pointer"
                         : "border-slate-200 bg-white text-slate-700 shadow-xs cursor-default"
                     }`}
                   >
@@ -129,7 +129,7 @@ export function ClassBookingBentoCard() {
           {/* Action Row */}
           <div className="flex items-center justify-between gap-4 pt-2">
             <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+              <ShieldCheck className="h-3.5 w-3.5 text-teal-600 shrink-0" />
               <span>Row-level database locks prevent race conditions.</span>
             </div>
 
@@ -139,7 +139,7 @@ export function ClassBookingBentoCard() {
               className={`shrink-0 rounded-lg px-4 py-2 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm ${
                 isBooked
                   ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                  : "bg-gradient-to-r from-emerald-500 to-teal-400 text-black hover:brightness-110 shadow-sm shadow-emerald-500/20"
+                  : "bg-gradient-to-r from-teal-500 to-teal-400 text-black hover:brightness-110 shadow-sm shadow-teal-500/20"
               }`}
             >
               {isBooked ? "Release Spot" : "Claim Spot #12"}

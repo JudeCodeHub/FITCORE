@@ -79,7 +79,7 @@ export function StaffOnboardingPage() {
   return (
     <AuthSplitLayout eyebrow="Staff invitation" headline="Your place on the team starts here.">
       <div className={styles.header}>
-        <div className={`mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border ${!loading && !invite ? "border-red-100 bg-red-50 text-red-600" : "border-emerald-100 bg-emerald-50 text-emerald-700"}`}>
+        <div className={`mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border ${!loading && !invite ? "border-red-100 bg-red-50 text-red-600" : "border-teal-100 bg-teal-50 text-teal-700"}`}>
           {!loading && !invite ? <CircleAlert className="h-5 w-5" aria-hidden="true" /> : <UsersRound className="h-5 w-5" aria-hidden="true" />}
         </div>
         <h1 className={styles.title}>{loading ? "Checking your invitation" : invite ? "Join the FitCore team" : "Invitation unavailable"}</h1>
@@ -94,13 +94,13 @@ export function StaffOnboardingPage() {
 
       {loading ? (
         <div role="status" className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" aria-hidden="true" />
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" aria-hidden="true" />
           Checking your invitation…
         </div>
       ) : invite ? (
         <form onSubmit={submit} className={styles.form}>
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3.5">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+          <div className="rounded-xl border border-teal-100 bg-teal-50/70 px-4 py-3.5">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-teal-700">
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />Your invitation
             </div>
             <p className="mt-2 text-sm font-semibold capitalize text-slate-900">{roleLabel}</p>
