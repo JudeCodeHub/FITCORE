@@ -24,7 +24,7 @@ export const authService = {
   },
 
   signup(input: ISignupInput) {
-    return apiFetch<{ message: string }>(
+    return apiFetch<{ message: string; verificationRequired: boolean }>(
       "/auth/signup",
       { method: "POST", body: JSON.stringify(input) },
       { auth: false },

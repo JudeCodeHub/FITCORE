@@ -17,6 +17,8 @@ export function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState(false);
+  const [verificationRequired, setVerificationRequired] = useState(true);
+  const [createdMessage, setCreatedMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
@@ -24,7 +26,9 @@ export function SignupPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await signup(name, email, password);
+      const result = await signup(name, email, password);
+      setVerificationRequired(result.verificationRequired);
+      setCreatedMessage(result.message);
       setCreated(true);
     } catch (err) {
       setError(
@@ -59,8 +63,8 @@ export function SignupPage() {
 
       {created ? (
         <div role="status" className="space-y-3 text-sm text-slate-700">
-          <p>Account created. Verify your email before signing in.</p>
-          <p>For local development, the verification link appears in the API console.</p>
+          <p>{createdMessage}</p>
+          {verificationRequired && <p>Check your email inbox for the verification link.</p>}
           <Link href="/login" className={styles.footerLink}>Go to login</Link>
         </div>
       ) : <form onSubmit={handleSubmit} className={styles.form}>

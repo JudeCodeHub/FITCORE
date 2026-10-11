@@ -24,7 +24,7 @@ export interface IAuthContextValue {
   user: IUser | null;
   status: AuthStatus;
   login: (email: string, password: string) => Promise<IUser>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<{ message: string; verificationRequired: boolean }>;
   completeInvite: (token: string, name: string, password: string) => Promise<IUser>;
   logout: () => Promise<void>;
 }
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = useCallback(
     async (name: string, email: string, password: string) => {
-      await authService.signup({ name, email, password });
+      return authService.signup({ name, email, password });
     },
     [],
   );

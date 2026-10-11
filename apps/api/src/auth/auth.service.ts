@@ -35,6 +35,16 @@ function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
+function localAutoVerifyEnabled(): boolean {
+  if (process.env.NODE_ENV === 'production' || process.env.FITCORE_DEV_AUTO_VERIFY_EMAIL !== 'true') return false;
+  try {
+    const host = new URL(process.env.DATABASE_URL ?? '').hostname;
+    return ['localhost', '127.0.0.1', '[::1]'].includes(host);
+  } catch {
+    return false;
+  }
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -52,7 +62,8 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const verificationToken = randomBytes(32).toString('hex');
+    const autoVerify = localAutoVerifyEnabled();
+    const verificationToken = autoVerify ? null : randomBytes(32).toString('hex');
 
     const user = await this.prisma.user.create({
       data: {
@@ -60,16 +71,21 @@ export class AuthService {
         email: dto.email,
         passwordHash,
         role: 'MEMBER',
+        emailVerified: autoVerify,
         verificationToken,
-        verificationTokenExpiresAt: new Date(
-          Date.now() + VERIFICATION_TOKEN_TTL_MS,
-        ),
+        verificationTokenExpiresAt: verificationToken
+          ? new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS)
+          : null,
       },
     });
 
-    await this.mailer.sendVerificationEmail(user.email, verificationToken);
+    if (verificationToken) {
+      await this.mailer.sendVerificationEmail(user.email, verificationToken);
+    }
 
-    return { message: 'Account created. Verify your email before signing in.' };
+    return autoVerify
+      ? { message: 'Account created. You can now sign in.', verificationRequired: false }
+      : { message: 'Account created. Verify your email before signing in.', verificationRequired: true };
   }
 
   async resendVerification(email: string) {
@@ -133,7 +149,13 @@ export class AuthService {
       throw new UnauthorizedException('This account has been deactivated');
     }
     if (!user.emailVerified) {
-      throw new ForbiddenException('Verify your email before signing in');
+      if (!localAutoVerifyEnabled()) {
+        throw new ForbiddenException('Verify your email before signing in');
+      }
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true, verificationToken: null, verificationTokenExpiresAt: null },
+      });
     }
 
     return (await this.issueNewSession(user, userAgent)).response;
